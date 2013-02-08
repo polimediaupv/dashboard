@@ -1,6 +1,6 @@
 ﻿MH-DashBoard
 
-MH-DashBoard is a monitor for Matterhorn/Galicaster agents
+MH-DashBoard is a simple monitor for Matterhorn/Galicaster agents
 
 It has two parts, a web page and a python script. 
 

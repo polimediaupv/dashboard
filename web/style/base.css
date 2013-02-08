@@ -384,6 +384,15 @@ html {
 	text-align: center;
 	font-size: 24px;
 }
+
+.dashboardItem.statusText.warning {
+	background-color: rgba(255,158,0,0.89);
+}
+
+.dashboardItem.statusText.error {
+	background-color: rgba(255,0,0,0.7);
+}
+
 .dashboardItem.statusIcon.unreachable {
 	background-color: #303030;
 	box-shadow: inset 0px 0px 8px 2px black;

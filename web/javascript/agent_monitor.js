@@ -575,8 +575,9 @@ var MonitorDashboard = Class.create({
 		}
 		
 		if (item.agentStatus.mhStatus!='idle' && item.agentStatus.mhStatus!='capturing') {
-			item.appendChild(base.dom.createElement('div',{className:'dashboardItem statusText',innerHTML:item.agentStatus.mhStatus}));
+			item.appendChild(base.dom.createElement('div',{className:'dashboardItem statusText warning',innerHTML:item.agentStatus.mhStatus}));
 		}
+
 		var iconStatus = 'unreachable';
 		if (item.agentStatus.hostStatus=='vncerror') {
 			iconStatus = 'idle';

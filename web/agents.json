@@ -15,7 +15,29 @@
                "center": "ASIC",
                "classroom": "0.1"
            },
-           "mhinfo": {}
+           "mhinfo": {},
+			"calendar": [
+			    {
+			        "start": "2013-02-08T15:00:00Z",
+			        "end": "2013-02-08T17:30:00Z",
+			        "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+			    },
+			    {
+			        "start": "2013-02-08T18:00:00Z",
+			        "end": "2013-02-08T20:00:00Z",
+			        "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+			    },
+			    {
+			        "start": "2013-02-09T08:00:00Z",
+			        "end": "2013-02-09T10:00:00Z",
+			        "title": "Intro PSCtxo 2013-02-09 09:00"
+			    },
+			    {
+			        "start": "2013-02-09T10:15:00Z",
+			        "end": "2013-02-09T12:30:00Z",
+			        "title": "Intro PSCtxo 2013-02-09 11:15"
+			    }
+			]
        },
        {
            "agentname": "smith-1",
@@ -80,7 +102,29 @@
                    ]
                },
                "time-since-last-update": 8345
-           }
+           },
+            "calendar": [
+                {
+                    "start": "2013-02-08T15:00:00Z",
+                    "end": "2013-02-08T17:30:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+                },
+                {
+                    "start": "2013-02-08T18:00:00Z",
+                    "end": "2013-02-08T20:00:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+                },
+                {
+                    "start": "2013-02-09T08:00:00Z",
+                    "end": "2013-02-09T10:00:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 09:00"
+                },
+                {
+                    "start": "2013-02-09T10:15:00Z",
+                    "end": "2013-02-09T12:30:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 11:15"
+                }
+            ]
        },
    		{
            "agentname": "smith-29",
@@ -96,7 +140,29 @@
                "center": "ASIC",
                "classroom": "0.1"
            },
-           "mhinfo": {}
+           "mhinfo": {},
+            "calendar": [
+                {
+                    "start": "2013-02-08T15:00:00Z",
+                    "end": "2013-02-08T17:30:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+                },
+                {
+                    "start": "2013-02-08T18:00:00Z",
+                    "end": "2013-02-08T20:00:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+                },
+                {
+                    "start": "2013-02-09T08:00:00Z",
+                    "end": "2013-02-09T10:00:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 09:00"
+                },
+                {
+                    "start": "2013-02-09T10:15:00Z",
+                    "end": "2013-02-09T12:30:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 11:15"
+                }
+            ]
        },
        {
            "agentname": "smith-89",
@@ -112,7 +178,29 @@
                "center": "ASIC",
                "classroom": "0.1"
            },
-           "mhinfo": {}
+           "mhinfo": {},
+            "calendar": [
+                {
+                    "start": "2013-02-08T15:00:00Z",
+                    "end": "2013-02-08T17:30:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+                },
+                {
+                    "start": "2013-02-08T18:00:00Z",
+                    "end": "2013-02-08T20:00:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+                },
+                {
+                    "start": "2013-02-09T08:00:00Z",
+                    "end": "2013-02-09T10:00:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 09:00"
+                },
+                {
+                    "start": "2013-02-09T10:15:00Z",
+                    "end": "2013-02-09T12:30:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 11:15"
+                }
+            ]
        },
        {
            "agentname": "smith-19",
@@ -128,7 +216,29 @@
                "center": "ASIC",
                "classroom": "0.1"
            },
-           "mhinfo": {}
+           "mhinfo": {},
+            "calendar": [
+                {
+                    "start": "2013-02-08T15:00:00Z",
+                    "end": "2013-02-08T17:30:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+                },
+                {
+                    "start": "2013-02-08T18:00:00Z",
+                    "end": "2013-02-08T20:00:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+                },
+                {
+                    "start": "2013-02-09T08:00:00Z",
+                    "end": "2013-02-09T10:00:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 09:00"
+                },
+                {
+                    "start": "2013-02-09T10:15:00Z",
+                    "end": "2013-02-09T12:30:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 11:15"
+                }
+            ]
        },
        {
            "agentname": "smith-12",
@@ -193,7 +303,29 @@
                    ]
                },
                "time-since-last-update": 8345
-           }
+           },
+            "calendar": [
+                {
+                    "start": "2013-02-08T15:00:00Z",
+                    "end": "2013-02-08T17:30:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+                },
+                {
+                    "start": "2013-02-08T18:00:00Z",
+                    "end": "2013-02-08T20:00:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+                },
+                {
+                    "start": "2013-02-09T08:00:00Z",
+                    "end": "2013-02-09T10:00:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 09:00"
+                },
+                {
+                    "start": "2013-02-09T10:15:00Z",
+                    "end": "2013-02-09T12:30:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 11:15"
+                }
+            ]
        },
        {
            "agentname": "smith-37",
@@ -258,7 +390,29 @@
                    ]
                },
                "time-since-last-update": 8345
-           }
+           },
+            "calendar": [
+                {
+                    "start": "2013-02-08T15:00:00Z",
+                    "end": "2013-02-08T17:30:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+                },
+                {
+                    "start": "2013-02-08T18:00:00Z",
+                    "end": "2013-02-08T20:00:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+                },
+                {
+                    "start": "2013-02-09T08:00:00Z",
+                    "end": "2013-02-09T10:00:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 09:00"
+                },
+                {
+                    "start": "2013-02-09T10:15:00Z",
+                    "end": "2013-02-09T12:30:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 11:15"
+                }
+            ]
        },
        {
            "agentname": "smith-99",
@@ -323,7 +477,29 @@
                    ]
                },
                "time-since-last-update": 8345
-           }
+           },
+            "calendar": [
+                {
+                    "start": "2013-02-08T15:00:00Z",
+                    "end": "2013-02-08T17:30:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"
+                },
+                {
+                    "start": "2013-02-08T18:00:00Z",
+                    "end": "2013-02-08T20:00:00Z",
+                    "title": "Clase de Intro. PSCtxo 2013-02-08 19:00"
+                },
+                {
+                    "start": "2013-02-09T08:00:00Z",
+                    "end": "2013-02-09T10:00:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 09:00"
+                },
+                {
+                    "start": "2013-02-09T10:15:00Z",
+                    "end": "2013-02-09T12:30:00Z",
+                    "title": "Intro PSCtxo 2013-02-09 11:15"
+                }
+            ]
        }
    ]
 }

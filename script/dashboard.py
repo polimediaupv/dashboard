@@ -48,9 +48,11 @@ class MatterhornClient:
 		curl.close()
 		return (retcode, self.contents)
 		
-	def getCalendar(self):
-		self.contents = ""
-		fullurl = self.server_url + "/recordings/recordings.json"
+	def getCalendar(self, date_from, date_to):
+		self.contents = ""		
+		d_from = "%04d-%02d-%02dT00:00:00Z" % (date_from.year, date_from.month, date_from.day)
+		d_to = "%04d-%02d-%02dT00:00:00Z" % (date_to.year, date_to.month, date_to.day)
+		fullurl = self.server_url + "/recordings/recordings.json?sort=CREATED&startsfrom="+d_from+"&endsto="+d_to
 		curl = pycurl.Curl()
 		curl.setopt(pycurl.URL, fullurl)
 		curl.setopt(pycurl.USERPWD, self.username+':'+self.passwd)
@@ -122,7 +124,7 @@ def getMatterHornCalendarInfo(config):
 	MH_passwd = config.get("dashboard-config", "MHPassword")
 	
 	MH = MatterhornClient(MH_server, MH_user, MH_passwd)
-	calendar = MH.getCalendar()
+	calendar = MH.getCalendar(datetime.datetime.utcnow().date(), datetime.datetime.utcnow().date()+datetime.timedelta(days=7))
 	ret = {}
 	if calendar[0] == 200:
 		catalogs =  json.loads(calendar[1])
@@ -224,11 +226,9 @@ def getAgentsNames(config, MHAgentsInfo):
 	return ret
 
 
-def generateAllAgentsJSON(config, now):
+def generateAllAgentsJSON(config, datetime_str):
 	MHAgentsInfo = getMatterHornAgentsInfo(config)
 	MHCalendarInfo = getMatterHornCalendarInfo(config)
-	
-	datetm = now.ctime()
 	
 	agentNames = getAgentsNames(config, MHAgentsInfo)	
 	
@@ -239,7 +239,7 @@ def generateAllAgentsJSON(config, now):
 	json_agents = json_agents[:-2]
 	
 	json="{\n"
-	json+="\"datetime\": \""+datetm+"\",\n"
+	json+="\"datetime\": \""+datetime_str+"\",\n"
 	json+="\"agents\": [\n"
 	json+= json_agents + "\n"
 	json+="]}\n"
@@ -281,10 +281,11 @@ def process(conf_file):
 	if (configAgentsFolder != None):
 		readAgentsConfig(config, configAgentsFolder)
 		
-	now = datetime.datetime.now()
-	sys.stdout.write("Writting JSON file (" + now.ctime() + ")... ")
+	utcnow = datetime.datetime.utcnow()
+	datetime_str = "%04d-%02d-%02dT%02d:%02d:%02dZ" % (utcnow.year, utcnow.month, utcnow.day, utcnow.hour, utcnow.minute, utcnow.second)
+	sys.stdout.write("Writting JSON file (" + datetime_str + ")... ")
 	sys.stdout.flush()
-	json = generateAllAgentsJSON(config, now)		
+	json = generateAllAgentsJSON(config, datetime_str)		
 	write_file(outputJSONFile, json)
 	print "Done."
 	

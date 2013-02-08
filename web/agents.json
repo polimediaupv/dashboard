@@ -1,5 +1,5 @@
 {
-   "datetime": "Thu Feb  7 09:14:52 2013",
+   "datetime": "2013-02-08T17:30:00Z",
    "agents": [
   	 {
            "agentname": "smith-8",
@@ -16,8 +16,8 @@
                "classroom": "0.1"
            },
            "mhinfo": {},
-			"calendar": [
-			    {
+           "calendar":[
+           		{
 			        "start": "2013-02-08T15:00:00Z",
 			        "end": "2013-02-08T17:30:00Z",
 			        "title": "Clase de Intro. PSCtxo 2013-02-08 16:00"

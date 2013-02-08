@@ -519,6 +519,16 @@ var MonitorDashboard = Class.create({
 		}
 		return status;
 	},
+	
+	// unknown, idle, impending, capturing
+	getCalendarStatus:function(agentData) {
+		var status = 'unknown';
+		if (agentData.calendar) {
+			var date = "2013-02-08T17:30:00Z";
+			
+		}
+		return status;
+	},
 
 	capturingStatus:'',
 	capturingAnimationTimer:null,
@@ -558,6 +568,7 @@ var MonitorDashboard = Class.create({
 		item.agentStatus = {};
 		item.agentStatus.hostStatus = this.getHostStatus(agentData);
 		item.agentStatus.mhStatus = this.getMHStatus(agentData);
+		item.agentStatus.calendarStatus = this.getCalendarStatus(agentData);
 		if (item.agentStatus.hostStatus=='online') {
 			item.appendChild(base.dom.createElement('img',{className:'dashboardItem image'},{'src':imageUrl,'alt':agentData.agentname}));
 			item.appendChild(base.dom.createElement('img',{className:'dashboardItem screenGlass'},{'src':'resources/monitor_glass.png','alt':'screen glass'}));

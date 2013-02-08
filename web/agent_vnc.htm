@@ -1,0 +1,35 @@
+<html>
+	<head>
+	<title>Agent VNC</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<script>
+		function getUrlVars()
+		{
+		    var vars = [], hash;
+		    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+		    for(var i = 0; i < hashes.length; i++)
+		    {
+			hash = hashes[i].split('=');
+			vars.push(hash[0]);
+			vars[hash[0]] = hash[1];
+		    }
+		    return vars;
+		}
+
+		function connect()
+		{
+				var vars = getUrlVars();
+				host = vars["host"];
+				document.write('Connecting with '+host+'...<br><br>NOTE: The connection will be closed if you close the window!!');
+				document.write('<applet archive="tightvnc-jviewer.jar" code="com.glavsoft.viewer.Viewer" width="1" height="1"><param name="Host" value="' + host + '" />');
+				//document.write('<param name="OpenNewWindow" value="no" />');
+				//document.write('<param name="ViewOnly" value="yes" />');
+				document.write('</applet>');
+		}
+	</script>
+	</head>
+	<body onload="connect()">		
+		<br />
+		Connecting with capture agent...
+	</body>
+</html>

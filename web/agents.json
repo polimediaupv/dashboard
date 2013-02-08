@@ -1,0 +1,329 @@
+{
+   "datetime": "Thu Feb  7 09:14:52 2013",
+   "agents": [
+  	 {
+           "agentname": "smith-8",
+           "agenturl": "smith8.ainf.upv.es",
+           "online": "true",
+           "VNC": "true",
+           "image": "smith-12.jpg",
+           "thumb": "smith-12-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {}
+       },
+       {
+           "agentname": "smith-1",
+           "agenturl": "smith1.ainf.upv.es",
+           "online": "true",
+           "VNC": "false",
+           "image": "smith-12.jpg",
+           "thumb": "smith-12-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {
+               "url": "127.0.1.1",
+               "state": "idle",
+               "name": "smith-12",
+               "capabilities": {
+                   "item": [
+                       {
+                           "value": "SCREEN.mp4",
+                           "key": "capture.device.Presentation.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Presenter.flavor"
+                       },
+                       {
+                           "value": "sound.m4a",
+                           "key": "capture.device.Sound.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Sound.flavor"
+                       },
+                       {
+                           "value": "presentation/source",
+                           "key": "capture.device.Presentation.flavor"
+                       },
+                       {
+                           "value": "Presentation,Presenter,Sound",
+                           "key": "capture.device.names"
+                       },
+                       {
+                           "value": "default",
+                           "key": "capture.device.Sound.src"
+                       },
+                       {
+                           "value": "/dev/presenter",
+                           "key": "capture.device.Presenter.src"
+                       },
+                       {
+                           "value": "PRESENTER.mp4",
+                           "key": "capture.device.Presenter.outputfile"
+                       },
+                       {
+                           "value": "/dev/presentation",
+                           "key": "capture.device.Presentation.src"
+                       }
+                   ]
+               },
+               "time-since-last-update": 8345
+           }
+       },
+   		{
+           "agentname": "smith-29",
+           "agenturl": "smith29.ainf.upv.es",
+           "online": "True",
+           "VNC": "False",
+           "image": "smith-29.jpg",
+           "thumb": "smith-29-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {}
+       },
+       {
+           "agentname": "smith-89",
+           "agenturl": "smith89.ainf.upv.es",
+           "online": "False",
+           "VNC": "False",
+           "image": "smith-89.jpg",
+           "thumb": "smith-89-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {}
+       },
+       {
+           "agentname": "smith-19",
+           "agenturl": "smith12.ainf.upv.es",
+           "online": "True",
+           "VNC": "True",
+           "image": "smith-19.jpg",
+           "thumb": "smith-19-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {}
+       },
+       {
+           "agentname": "smith-12",
+           "agenturl": "smith12.ainf.upv.es",
+           "online": "false",
+           "VNC": "false",
+           "image": "smith-12.jpg",
+           "thumb": "smith-12-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {
+               "url": "127.0.1.1",
+               "state": "idle",
+               "name": "smith-12",
+               "capabilities": {
+                   "item": [
+                       {
+                           "value": "SCREEN.mp4",
+                           "key": "capture.device.Presentation.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Presenter.flavor"
+                       },
+                       {
+                           "value": "sound.m4a",
+                           "key": "capture.device.Sound.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Sound.flavor"
+                       },
+                       {
+                           "value": "presentation/source",
+                           "key": "capture.device.Presentation.flavor"
+                       },
+                       {
+                           "value": "Presentation,Presenter,Sound",
+                           "key": "capture.device.names"
+                       },
+                       {
+                           "value": "default",
+                           "key": "capture.device.Sound.src"
+                       },
+                       {
+                           "value": "/dev/presenter",
+                           "key": "capture.device.Presenter.src"
+                       },
+                       {
+                           "value": "PRESENTER.mp4",
+                           "key": "capture.device.Presenter.outputfile"
+                       },
+                       {
+                           "value": "/dev/presentation",
+                           "key": "capture.device.Presentation.src"
+                       }
+                   ]
+               },
+               "time-since-last-update": 8345
+           }
+       },
+       {
+           "agentname": "smith-37",
+           "agenturl": "smith12.ainf.upv.es",
+           "online": "True",
+           "VNC": "True",
+           "image": "smith-12.jpg",
+           "thumb": "smith-12-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {
+               "url": "127.0.1.1",
+               "state": "capturing",
+               "name": "smith-12",
+               "capabilities": {
+                   "item": [
+                       {
+                           "value": "SCREEN.mp4",
+                           "key": "capture.device.Presentation.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Presenter.flavor"
+                       },
+                       {
+                           "value": "sound.m4a",
+                           "key": "capture.device.Sound.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Sound.flavor"
+                       },
+                       {
+                           "value": "presentation/source",
+                           "key": "capture.device.Presentation.flavor"
+                       },
+                       {
+                           "value": "Presentation,Presenter,Sound",
+                           "key": "capture.device.names"
+                       },
+                       {
+                           "value": "default",
+                           "key": "capture.device.Sound.src"
+                       },
+                       {
+                           "value": "/dev/presenter",
+                           "key": "capture.device.Presenter.src"
+                       },
+                       {
+                           "value": "PRESENTER.mp4",
+                           "key": "capture.device.Presenter.outputfile"
+                       },
+                       {
+                           "value": "/dev/presentation",
+                           "key": "capture.device.Presentation.src"
+                       }
+                   ]
+               },
+               "time-since-last-update": 8345
+           }
+       },
+       {
+           "agentname": "smith-99",
+           "agenturl": "smith99.ainf.upv.es",
+           "online": "True",
+           "VNC": "True",
+           "image": "smith-12.jpg",
+           "thumb": "smith-12-thumb.jpg",
+           "enrich": {
+               "url": "smith12.ainf.upv.es",
+               "campus": "vera",
+               "building": "8H",
+               "center": "ASIC",
+               "classroom": "0.1"
+           },
+           "mhinfo": {
+               "url": "127.0.1.1",
+               "state": "unknown",
+               "name": "smith-12",
+               "capabilities": {
+                   "item": [
+                       {
+                           "value": "SCREEN.mp4",
+                           "key": "capture.device.Presentation.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Presenter.flavor"
+                       },
+                       {
+                           "value": "sound.m4a",
+                           "key": "capture.device.Sound.outputfile"
+                       },
+                       {
+                           "value": "presenter/source",
+                           "key": "capture.device.Sound.flavor"
+                       },
+                       {
+                           "value": "presentation/source",
+                           "key": "capture.device.Presentation.flavor"
+                       },
+                       {
+                           "value": "Presentation,Presenter,Sound",
+                           "key": "capture.device.names"
+                       },
+                       {
+                           "value": "default",
+                           "key": "capture.device.Sound.src"
+                       },
+                       {
+                           "value": "/dev/presenter",
+                           "key": "capture.device.Presenter.src"
+                       },
+                       {
+                           "value": "PRESENTER.mp4",
+                           "key": "capture.device.Presenter.outputfile"
+                       },
+                       {
+                           "value": "/dev/presentation",
+                           "key": "capture.device.Presentation.src"
+                       }
+                   ]
+               },
+               "time-since-last-update": 8345
+           }
+       }
+   ]
+}

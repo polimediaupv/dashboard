@@ -1,0 +1,25 @@
+﻿MH-DashBoard
+
+MH-DashBoard is a monitor for Matterhorn/Galicaster agents
+
+It has two parts, a web page and a python script. 
+
+
+Requirements
+- A linux machine
+- A web server
+- vncsnapshot and convert utilities
+
+
+How to install?
+
+1.- Copy the web folder available somewere in your web server.
+2.- Modify the example config file.
+3.- Execute the script.
+
+
+The script generate the json file needed by the web page, you can put the add the script to youn crontab file
+
+For example:
+*/5 * * * * /monitor/script/dashboard.py -c /monitor/etc/mh-dashboard/dashboard.conf >> /monitor/log/dashboard.log
+

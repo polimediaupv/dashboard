@@ -12,10 +12,10 @@ Requirements
 
 How to install?
 
-1.- Copy the folder named "web", that holds the .html and .css somewhere in your web server.
-2.- Copy the folder named "script" to the linux box you use to run the actual monitor
-2.- Modify the example config file in /script/etc
-3.- Execute the script. Usually you will do it inside of a cron job
+1 Copy the folder named "web", that holds the .html and .css somewhere in your web server.
+2 Copy the folder named "script" to the linux box you use to run the actual monitor
+2 Modify the example config file in /script/etc
+3 Execute the script. Usually you will do it inside of a cron job
 
 
 The script generate the json file needed by the web page, and you can call the script to your crontab file like

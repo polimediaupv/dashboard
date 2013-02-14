@@ -393,6 +393,10 @@ html {
 	background-color: rgba(255,0,0,0.7);
 }
 
+.dashboardItem.statusText.ok {
+	background-color: rgba(0,138,19,0.82);
+}
+
 .dashboardItem.statusIcon.unreachable {
 	background-color: #303030;
 	box-shadow: inset 0px 0px 8px 2px black;

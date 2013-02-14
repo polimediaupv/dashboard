@@ -10,7 +10,7 @@
 		<link href='http://fonts.googleapis.com/css?family=Bonbon' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="style/base.css" title="Basic stylesheet" type="text/css" media="screen" charset="utf-8">
 	</head>
-	<body onload="new AgentMonitor($('#mainContainer')[0],{agentDataUrl:'agents.json',reloadMinutes:5,imagesDir:'screenshots',thumbsDir:'screenshots',zoomIncrement:50})">
+	<body onload="new AgentMonitor($('#mainContainer')[0],{agentDataUrl:'agents.json',reloadMinutes:5,reloadAllMinutes:60,imagesDir:'screenshots',thumbsDir:'screenshots',zoomIncrement:50})">
 		<div id="mainContainer"></div>
 	</body>
 </html>

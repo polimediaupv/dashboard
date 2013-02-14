@@ -112,7 +112,7 @@ site.MessageBox = Class.create({
 		if (!params.width) params.width = "60%";
 		if (!params.height) params.height = "20%";
 		if (!params.className) params.className = this.errorClassName;
-		
+
 		var msgContent = document.createElement('div');
 		if (params.title) {
 			var titleElem = document.createElement('div');
@@ -120,7 +120,7 @@ site.MessageBox = Class.create({
 			titleElem.innerHTML = params.title;
 			msgContent.appendChild(titleElem);
 		}
-		
+
 		var msgElem = document.createElement('div');
 		msgElem.className = "messageErrorContent";
 		msgElem.innerHTML = message;
@@ -445,10 +445,27 @@ var MonitorDashboard = Class.create({
 			},700);
 		});
 	},
+	
+	parseDateTime:function(dateTime) {
+		var result = {};
+		if (/(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)Z/i.test(dateTime)) {
+			result.year = RegExp.$1;
+			result.month = RegExp.$2;
+			result.day = RegExp.$3;
+			result.hour = RegExp.$4;
+			result.minute = RegExp.$5;
+			result.second = RegExp.$6;
+		}
+		return result;
+	},
+	
+	getTimeFormat:function(rawTimer) {		
+		return new Date(rawTimer).toLocaleString();
+	},
 
 	getLastUpdate:function() {
 		var date = this.agentData.datetime;
-		return date;
+		return this.getTimeFormat(date);
 	},
 
 	buildDashboard:function() {
@@ -519,13 +536,66 @@ var MonitorDashboard = Class.create({
 		}
 		return status;
 	},
-	
+
+	getRecordingStatus:function(startDate,endDate) {
+		var today = new Date();
+		var diff = (today - startDate) / 1000;
+		diff = diff / 60;
+		var endDiff = (today - endDate) / 1000;
+		endDiff = endDiff / 60;
+		var status = 'idle';
+		
+		if (today.getDate()==startDate.getDate() && today.getMonth()==startDate.getMonth() && today.getFullYear()==startDate.getFullYear()) {
+			status = 'today';
+		}
+
+		if (diff<0) { // Incomming recording
+			if (Math.abs(diff)<site.instance.initConfig.recordingAlertTresshold) {
+				status = 'impendign';
+			}
+		}
+		if (diff>0 && endDiff<0) {
+			status = 'recording';
+		}
+		if (endDiff>0) {
+			status = 'idle';
+		}
+		return status;
+	},
+
+	getNextScheduledRecording:function(calendar) {
+		var today = new Date();
+		var recording = null;
+		var minDiff = 999999;
+			
+		for (var i=0;i<calendar.length;++i) {
+			var start = new Date(calendar[i].start);
+			var end = new Date(calendar[i].end);
+			var endDiff = ((today - end) / 1000) / 60;
+			var diff = ((today - start) / 1000) / 60;
+			if (diff<0 && Math.abs(diff)<minDiff) {
+				recording = calendar[i];
+				minDiff = Math.abs(diff);
+			}
+			if (diff>0 && endDiff<0) {	// Is recording now!
+				recording = calendar[i];
+				break;
+			}
+		}
+		return recording;
+	},
+
 	// unknown, idle, impending, capturing
 	getCalendarStatus:function(agentData) {
 		var status = 'unknown';
 		if (agentData.calendar) {
-			var date = "2013-02-08T17:30:00Z";
-			
+			var nextRecording = this.getNextScheduledRecording(agentData.calendar);
+			status = 'idle';
+			if (nextRecording) {
+				var start = new Date(nextRecording.start);
+				var end = new Date(nextRecording.end);
+				status = this.getRecordingStatus(start,end);
+			}
 		}
 		return status;
 	},
@@ -556,6 +626,68 @@ var MonitorDashboard = Class.create({
 			elem.className = 'dashboardItem statusIcon capturing' +  this.capturingStatus;
 		}
 	},
+	
+	getStatusMessage:function(agentStatus) {
+		var host = agentStatus.hostStatus;
+		var mh = agentStatus.mhStatus;
+		var cal = agentStatus.calendarStatus;
+		
+		var calRec = (cal=='recording' || cal=='impending' || cal=='today');
+		var hostDown = (host=='offline');
+		var mhRecording = (mh=='capturing');
+		var mhDown = (mh!='idle' && mh!='capturing');
+
+		var message = '';
+		var className = '';	// ok, warning, error
+
+		if (calRec) {
+			if (hostDown) {
+				message = 'offline';
+				className = 'error';
+			}
+			else if (mhDown) {
+				message = 'mh error';
+				className = 'error';
+			}
+			else if (!mhRecording && cal=='recording') {
+				message = 'rec error';
+				className = 'error';
+			}
+			else if (mhRecording && cal=='recording') {
+				message = 'capturing';
+				className = 'ok';
+			}
+			else if (cal=='impending') {
+				message = 'impending rec';
+				className = 'ok';
+			}
+			else if (cal=='today') {
+				message = 'rec today';
+				className = 'ok';
+			}
+			else {
+				message = 'unknown';
+				className = 'error';
+			}
+		}
+		else if (mhDown) {
+			message = 'mh error';
+			className = 'warning';
+		}
+		else if (hostDown) {
+			message = 'offline';
+			className = 'warning';
+		}
+		else if (!mhDown && !hostDown) {
+			message = '';
+			className = 'ok'
+		}
+
+		if (message!='' && className!='') {
+			return base.dom.createElement('div',{className:'dashboardItem statusText ' + className,innerHTML:message});
+		}
+		return null;
+	},
 
 	createItem:function(agentData) {
 		var item = base.dom.createElement('div',{className:'dashboardItemContainer',id:agentData.agentname});
@@ -585,8 +717,9 @@ var MonitorDashboard = Class.create({
 			item.appendChild(base.dom.createElement('div',{className:'dashboardItem offlineIcon'}));
 		}
 		
-		if (item.agentStatus.mhStatus!='idle' && item.agentStatus.mhStatus!='capturing') {
-			item.appendChild(base.dom.createElement('div',{className:'dashboardItem statusText warning',innerHTML:item.agentStatus.mhStatus}));
+		var statusMessage = this.getStatusMessage(item.agentStatus);
+		if (statusMessage) {
+			item.appendChild(statusMessage);
 		}
 
 		var iconStatus = 'unreachable';
@@ -679,6 +812,13 @@ var MonitorDashboard = Class.create({
 			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info building',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('building') + '</span>:' + agentData.enrich.building}));
 			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info center',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('center') + '</span>:' + agentData.enrich.center}));
 			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info classroom',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('classroom') + '</span>:' + agentData.enrich.classroom}));	
+			
+			hostStatus = this.getHostStatus(agentData);
+			mhStatus = this.getMHStatus(agentData);
+			calStatus = this.getCalendarStatus(agentData);
+			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info hostStatus',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('hostStatus') + '</span>:' + hostStatus}));	
+			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info mhStatus',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('mhStatus') + '</span>:' + mhStatus}));	
+			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info calStatus',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('calStatus') + '</span>:' +calStatus}));	
 		}
 		item.appendChild(infoContainer);
 		return item;
@@ -831,13 +971,15 @@ var AgentMonitor = Class.create({
 	saveConfigTimer:null,
 	loader:null,
 	reloadTimer:null,
-	reloadMinutes:5,
+	reloadAllTimer:null,
 	initConfig:{
 		reloadMinutes:5,
+		reloadAllMinutes:60,
 		agentDataUrl:'agents.json',
 		imagesDir:'screenshots',
 		thumbsDir:'screenshots',
-		zoomIncrement:50
+		zoomIncrement:50,
+		recordingAlertTresshold:120
 	},
 
 	initialize:function(container,initConfig) {
@@ -847,6 +989,8 @@ var AgentMonitor = Class.create({
 			if (initConfig.imagesDir) this.initConfig.imagesDir = initConfig.imagesDir;
 			if (initConfig.thumbsDir) this.initConfig.thumbsDir = initConfig.thumbsDir;
 			if (initConfig.zoomIncrement) this.initConfig.zoomIncrement = initConfig.zoomIncrement;
+			if (initConfig.recordingAlertTresshold) this.initConfig.recordingAlertTresshold = initConfig.recordingAlertTresshold;
+			if (initConfig.reloadAllMinutes) this.initConfig.reloadAllMinutes = initConfig.reloadAllMinutes;
 		}
 		this.mainContainer = container;
 		var thisClass = this;
@@ -868,6 +1012,12 @@ var AgentMonitor = Class.create({
 			thisClass.dashboard.load(thisClass.initConfig.agentDataUrl,function() {});
 		},reloadTime);
 		this.reloadTimer.repeat = true;
+		if (this.initConfig.reloadAllMinutes>0) {
+			var reloadAllTime = this.initConfig.reloadAllMinutes * 60 * 1000;
+			this.reloadAllTimer = new base.Timer(function(timer) {
+				window.location = window.location;
+			},reloadAllTime);
+		}		
 	},
 	
 	saveConfig:function() {

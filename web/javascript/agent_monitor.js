@@ -1,56 +1,18 @@
 var site = {}
 site.Messages = Class.create({
-	msg:[],
+	msg:{},
 	
 	load:function(onSuccess) {
+		var thisClass = this;
+		var lang = "en";
 		if (/es/i.test(navigator.language)) {
-			this.msg['name'] = 'nombre';
-			this.msg['campus'] = 'campus';
-			this.msg['building'] = 'edificio';
-			this.msg['center'] = 'centro';
-			this.msg['classroom'] = 'clase';
-			this.msg['showhidden'] = 'Ver agentes ocultos';
-			this.msg['size'] = 'Tamaño';
-			this.msg['filterby'] = 'Filtrar por';
-			this.msg['filterbyhost'] = 'Estado del host';
-			this.msg['filterbymh'] = 'Estado de Matterhorn';
-			this.msg['hideAgent'] = 'Ocultar agente. Para volver a mostrar desplegar la barra lateral y seleccionar "ver agentes ocultos", y luego pulsra el botón mostrar del agente';
-			this.msg['showAgent'] = 'Mostrar agente';
-			this.msg['numberOfHiddenItems'] = 'Número de elementos ocultos';
-			this.msg['thereAre'] = 'Hay';
-			this.msg['hiddenItem'] = 'agente oculto';
-			this.msg['hiddenItems'] = 'agentes ocultos';
-			this.msg['hideWarningMessages'] = 'Ocultar mensajes de advertencia';
-			this.msg['vncerror'] = 'Error VNC';
-			this.msg['agentsRecording'] = 'agentes grabando';
-			this.msg['agentRecording'] = 'agente grabando';
-			this.msg['lastUpdate'] = 'última actualización';
-		}
-		else {
-			this.msg['name'] = 'name';
-			this.msg['campus'] = 'campus';
-			this.msg['building'] = 'building';
-			this.msg['center'] = 'center';
-			this.msg['classroom'] = 'classroom';
-			this.msg['showhidden'] = 'Show hidden agents';
-			this.msg['size'] = 'Size';
-			this.msg['filterby'] = 'Filter by';
-			this.msg['filterbyhost'] = 'Host status';
-			this.msg['filterbymh'] = 'Matterhorn status';
-			this.msg['hideAgent'] = 'Hide agent. To show this agent again, unfold the lateral bar and select "Show hidden agents", and then click on unhide button';
-			this.msg['showAgent'] = 'Show agent';
-			this.msg['numberOfHiddenItems'] = 'Number of hidden agents';
-			this.msg['thereAre'] = 'There are';
-			this.msg['hiddenItem'] = 'hidden agent';
-			this.msg['hiddenItems'] = 'hidden agents';
-			this.msg['hideWarningMessages'] = 'Hide warning messages';
-			this.msg['vncerror'] = 'VNC Error';
-			this.msg['agentsRecording'] = 'agents recording';
-			this.msg['agentRecording'] = 'agent recording';
-			this.msg['lastUpdate'] = 'last update';
+			lang = "es";
 		}
 		
-		onSuccess();
+		$.ajax({url:'localization/messages_' + lang + '.json'}).complete(function(data) {
+			thisClass.msg = JSON.parse(data.responseText);
+			if (onSuccess) onSuccess();
+		});
 	},
 
 	translate:function(key) {
@@ -551,7 +513,7 @@ var MonitorDashboard = Class.create({
 
 		if (diff<0) { // Incomming recording
 			if (Math.abs(diff)<site.instance.initConfig.recordingAlertTresshold) {
-				status = 'impendign';
+				status = 'impending';
 			}
 		}
 		if (diff>0 && endDiff<0) {
@@ -658,7 +620,7 @@ var MonitorDashboard = Class.create({
 				className = 'ok';
 			}
 			else if (cal=='impending') {
-				message = 'impending rec';
+				message = 'impending';
 				className = 'ok';
 			}
 			else if (cal=='today') {
@@ -684,7 +646,7 @@ var MonitorDashboard = Class.create({
 		}
 
 		if (message!='' && className!='') {
-			return base.dom.createElement('div',{className:'dashboardItem statusText ' + className,innerHTML:message});
+			return base.dom.createElement('div',{className:'dashboardItem statusText ' + className,innerHTML:site.messages.translate(message)});
 		}
 		return null;
 	},
@@ -807,6 +769,7 @@ var MonitorDashboard = Class.create({
 		}
 		var infoContainer = base.dom.createElement('div',{className:'dashboardDetailInfoContainer'});
 		infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('name') + '</span>:' + agentData.agentname}));
+		infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('address') + '</span>:' + agentData.agenturl}));
 		if (agentData.enrich) {
 			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info campus',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('campus') + '</span>:' + agentData.enrich.campus}));
 			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info building',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('building') + '</span>:' + agentData.enrich.building}));

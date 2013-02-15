@@ -1,8 +1,6 @@
 html {
 	font-family: 'Roboto Condensed', sans-serif;
 	font-size:10px;
-	-webkit-user-select: none;
-	-moz-user-select: none;
 }
 
 /* messageBox */
@@ -376,7 +374,7 @@ html {
 
 .dashboardItem.statusText {
 	position: absolute;
-	top: 23%;
+	bottom: 28%;
 	color: white;
 	background-color: rgba(255,0,0,0.7);
 	left: 0%;

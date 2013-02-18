@@ -31,5 +31,9 @@
 	"unregistered":"no registrado",
 	"unknown":"desconocido",
 	"rec today":"graba hoy",
-	"mh error":"error mh"
+	"mh error":"error mh",
+	"impending":"inminnente",
+	"filterbycal":"filtrar por calendario",
+	"tomorroworlater":"mañana o más tarde",
+	"today":"hoy"
 }

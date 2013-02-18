@@ -211,6 +211,7 @@ var UtilityView = Class.create({
 	
 	hostFilters:[],
 	mhFilters:[],
+	calFilters:[],
 	
 	initialize:function(parent,dashboard) {
 		this.itemSizeInc = site.instance.initConfig.zoomIncrement;
@@ -271,6 +272,12 @@ var UtilityView = Class.create({
 		this.container.appendChild(this.getFilterField('unregistered',site.messages.translate('unregistered'),site.instance.config.filters.mh.unregistered,this.mhFilters));
 		this.container.appendChild(this.getFilterField('unknown',site.messages.translate('unknown'),site.instance.config.filters.mh.unknown,this.mhFilters));
 
+		this.container.appendChild(base.dom.createElement('div',{className:'utilityTitleLabel subtitle',innerHTML:site.messages.translate('filterbycal') + ':'}));
+		this.container.appendChild(this.getFilterField('capturing',site.messages.translate('capturing'),site.instance.config.filters.cal.capturing,this.calFilters));
+		this.container.appendChild(this.getFilterField('impending',site.messages.translate('impending'),site.instance.config.filters.cal.impending,this.calFilters));
+		this.container.appendChild(this.getFilterField('today',site.messages.translate('today'),site.instance.config.filters.cal.today,this.calFilters));
+		this.container.appendChild(this.getFilterField('idle',site.messages.translate('tomorroworlater'),site.instance.config.filters.cal.idle,this.calFilters));
+
 		new base.Timer(function(timer) {
 			thisClass.applyFilters(site.instance.config.showHiddenAgents);
 		},500);
@@ -302,6 +309,10 @@ var UtilityView = Class.create({
 		
 		// matterhorn filters
 		this.saveFilters(this.mhFilters,site.instance.config.filters.mh);
+
+		// 		
+		this.saveFilters(this.calFilters,site.instance.config.filters.cal);
+
 		site.instance.config.showHiddenAgents = showHidden;
 		site.instance.saveConfig();
 		this.dashboard.applyFilters(true);
@@ -517,7 +528,7 @@ var MonitorDashboard = Class.create({
 			}
 		}
 		if (diff>0 && endDiff<0) {
-			status = 'recording';
+			status = 'capturing';
 		}
 		if (endDiff>0) {
 			status = 'idle';
@@ -547,7 +558,7 @@ var MonitorDashboard = Class.create({
 		return recording;
 	},
 
-	// unknown, idle, impending, capturing
+	// unknown, idle, impending, capturing, today
 	getCalendarStatus:function(agentData) {
 		var status = 'unknown';
 		if (agentData.calendar) {
@@ -594,7 +605,7 @@ var MonitorDashboard = Class.create({
 		var mh = agentStatus.mhStatus;
 		var cal = agentStatus.calendarStatus;
 		
-		var calRec = (cal=='recording' || cal=='impending' || cal=='today');
+		var calRec = (cal=='capturing' || cal=='impending' || cal=='today');
 		var hostDown = (host=='offline');
 		var mhRecording = (mh=='capturing');
 		var mhDown = (mh!='idle' && mh!='capturing');
@@ -611,11 +622,11 @@ var MonitorDashboard = Class.create({
 				message = 'mh error';
 				className = 'error';
 			}
-			else if (!mhRecording && cal=='recording') {
+			else if (!mhRecording && cal=='capturing') {
 				message = 'rec error';
 				className = 'error';
 			}
-			else if (mhRecording && cal=='recording') {
+			else if (mhRecording && cal=='capturing') {
 				message = 'capturing';
 				className = 'ok';
 			}
@@ -815,6 +826,12 @@ var MonitorDashboard = Class.create({
 					capturing:true,
 					unregistered:true,
 					unknown:true
+				},
+				cal:{
+					capturing:true,
+					impending:true,
+					today:true,
+					idle:true
 				}
 			};
 		}
@@ -825,8 +842,9 @@ var MonitorDashboard = Class.create({
 			if (agent && agent.agentData) {
 				var hostStatus = agent.agentStatus.hostStatus;
 				var mhStatus = agent.agentStatus.mhStatus;
+				var calStatus = agent.agentStatus.calendarStatus;
 				var visible = false;
-				if (filters.host[hostStatus] && filters.mh[mhStatus] && !agent.isAgentHidden) {
+				if (filters.host[hostStatus] && filters.mh[mhStatus] && filters.cal[calStatus] && !agent.isAgentHidden) {
 					visible = true;
 				}
 
@@ -1006,6 +1024,12 @@ var AgentMonitor = Class.create({
 					capturing:true,
 					unregistered:true,
 					unknown:true
+				},
+				cal: {
+					capturing:true,
+					impending:true,
+					today:true,
+					idle:true
 				}
 			}
 		}
@@ -1021,7 +1045,7 @@ var AgentMonitor = Class.create({
 			this.loadDefaultConfig();
 		}
 		
-		if (!this.config || !this.config.filters || !this.config.filters.host) {
+		if (!this.config || !this.config.filters || !this.config.filters.host || !this.config.filters.cal) {
 			this.loadDefaultConfig();
 		}
 	},

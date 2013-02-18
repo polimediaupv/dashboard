@@ -30,5 +30,8 @@
 	"unregistered":"unregistered",
 	"unknown":"unknown",
 	"rec today":"rec today",
-	"mh error":"mh error"
+	"mh error":"mh error",
+	"filterbycal":"filer by calendar",
+	"tomorroworlater":"tomorrow or later",
+	"today":"today"
 }

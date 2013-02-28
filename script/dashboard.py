@@ -214,6 +214,7 @@ def generateAgentJSON(config, MHAgentsInfo, MHCalendarInfo, agentSection):
     line_str += "\"agenturl\": \"" + agent_url + "\",\t"
     line_str += "\"online\": \"" + str(agent_online) + "\",\t"
     line_str += "\"VNC\": \"" + str(vncOk) + "\",\t"
+    line_str += "\"vncport\": \"" + str(agent_vncport) + "\",\t"
     line_str += "\"image\": \"" + filenameshot + "\",\t"
     line_str += "\"thumb\": \"" + filenamethumb + "\",\t"
     line_str += "\"enrich\": {" + json_items + "},\t"

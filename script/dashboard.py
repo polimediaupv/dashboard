@@ -92,9 +92,10 @@ def isComputerOnline(ip):
     return (response == 0)
 
 
-def generateAgentScreenShoot(ip, passwdFile, snapshotFolder, agentSection):
+def generateAgentScreenShot(ip, port, passwdFile, snapshotFolder, agentSection):
     outimg = snapshotFolder + agentSection + ".jpg"
     outthumb = snapshotFolder + agentSection + "-thumb.jpg"
+    ip = ip + '::' + port
 
     vnc_cmd = "timeout 10 vncsnapshot -passwd " + passwdFile + " " + ip + " " + outimg
     vncErr = subprocess.call(vnc_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -172,6 +173,7 @@ def getJSONitems(config, agentSection):
 def generateAgentJSON(config, MHAgentsInfo, MHCalendarInfo, agentSection):
     MHinfo = getMatterHornInfo(MHAgentsInfo, agentSection)
     agent_url = getConfigOption(config, agentSection, "url")
+
     if (agent_url is None):
         try:
             agent_url = MHinfo["url"]
@@ -179,16 +181,21 @@ def generateAgentJSON(config, MHAgentsInfo, MHCalendarInfo, agentSection):
             pass
 
     snapshotFolder = getConfigOption(config, "dashboard-config", "snapShotFolder")
+
     agent_vncpasswdFile = getConfigOption(config, agentSection, "vncpasswdFile")
     if (agent_vncpasswdFile is None):
         agent_vncpasswdFile = getConfigOption(config, "dashboard-config", "vncpasswdFile")
+
+    agent_vncport = getConfigOption(config, agentSection, "VNCPort")
+    if agent_vncport is None:
+        agent_vncport = getConfigOption(config, "dashboard-config", "VNCPort")
 
     agent_online = isComputerOnline(agent_url)
     vncOk = False
     filenameshot = ""
     filenamethumb = ""
     if (agent_online):
-        vncOk = generateAgentScreenShoot(agent_url, agent_vncpasswdFile, snapshotFolder, agentSection)
+        vncOk = generateAgentScreenShot(agent_url, agent_vncport, agent_vncpasswdFile, snapshotFolder, agentSection)
         if (vncOk is True):
             filenameshot = agentSection+".jpg"
             filenamethumb = agentSection+"-thumb.jpg"

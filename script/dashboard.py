@@ -105,9 +105,13 @@ def generateAgentScreenShoot(ip, passwdFile, snapshotFolder, agentSection):
 
 
 def getMatterHornInfo(MHAgentsInfo, agentName):
-    for a in MHAgentsInfo:
-        if (a["name"] == agentName):
-            return a
+    if type(MHAgentsInfo) is set:
+        for a in MHAgentsInfo:
+            if (a["name"] == agentName):
+                return a
+    else:
+        if MHAgentsInfo["name"] == agentName:
+            return MHAgentsInfo
     return {}
 
 
@@ -215,8 +219,13 @@ def generateAgentJSON(config, MHAgentsInfo, MHCalendarInfo, agentSection):
 
 def getAgentsNames(config, MHAgentsInfo):
     agents = {}
-    for a in MHAgentsInfo:
-        name = str(a["name"])
+
+    if type(MHAgentsInfo) is list:
+        for a in MHAgentsInfo:
+            name = str(a["name"])
+            agents[name] = name
+    else:
+        name = str(MHAgentsInfo["name"])
         agents[name] = name
 
     sections = config.sections()

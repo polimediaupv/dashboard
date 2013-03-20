@@ -106,7 +106,7 @@ def generateAgentScreenShot(ip, port, passwdFile, snapshotFolder, agentSection):
 
 
 def getMatterHornInfo(MHAgentsInfo, agentName):
-    if type(MHAgentsInfo) is set:
+    if type(MHAgentsInfo) is list:
         for a in MHAgentsInfo:
             if (a["name"] == agentName):
                 return a

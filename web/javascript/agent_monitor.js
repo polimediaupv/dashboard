@@ -806,7 +806,7 @@ var MonitorDashboard = Class.create({
 	},
 	
 	connectVnc:function(agentElem) {
-		window.open('agent_vnc.htm?host=' + agentElem.agentData.agenturl);
+		window.open('agent_vnc.htm?host=' + agentElem.agentData.agenturl + '&port=' + agentElem.agentData.vncport);
 	},
 
 	applyFilters:function(animate) {

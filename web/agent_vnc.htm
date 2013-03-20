@@ -20,8 +20,9 @@
 		{
 				var vars = getUrlVars();
 				host = vars["host"];
+				port = vars["port"];
 				document.write('Connecting with '+host+'...<br><br>NOTE: The connection will be closed if you close the window!!');
-				document.write('<applet archive="tightvnc-jviewer.jar" code="com.glavsoft.viewer.Viewer" width="1" height="1"><param name="Host" value="' + host + '" />');
+				document.write('<applet archive="tightvnc-jviewer.jar" code="com.glavsoft.viewer.Viewer" width="1" height="1"><param name="Host" value="' + host + '" /><param name="Port" value="' + port + '" />');
 				//document.write('<param name="OpenNewWindow" value="no" />');
 				//document.write('<param name="ViewOnly" value="yes" />');
 				document.write('</applet>');

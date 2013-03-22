@@ -27,6 +27,8 @@
 	"lastUpdate":"última actualización",
 	"address":"dirección",
 	"capturing":"grabando",
+	"start capturing":"grabando",
+	"end capturing":"grabando",
 	"hostStatus":"estado host",
 	"mhStatus":"estado matterhorn",
 	"calStatus":"calendario",

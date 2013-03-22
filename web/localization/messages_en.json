@@ -11,7 +11,7 @@
 	"filterbyhost":"Host status",
 	"filterbymh":"Matterhorn status",
 	"filterbycal":"Recording schedule",
-        "filterbycagroup":"Capture Agent Group",
+    "filterbycagroup":"Capture Agent Group",
 	"hideAgent":"Hide agent. To show this agent again, unfold the lateral bar and select \"Show hidden agents\", and then click on unhide button",
 	"showAgent":"Show agent",
 	"numberOfHiddenItems":"Number of hidden agents",

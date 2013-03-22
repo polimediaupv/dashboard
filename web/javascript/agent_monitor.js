@@ -1,19 +1,29 @@
-var site = {}
+var site = {};
 site.Messages = Class.create({
 	msg:{},
-	
+	lang:null,
+        
 	load:function(onSuccess) {
 		var thisClass = this;
 		var lang = "en";
 		if (/es/i.test(navigator.language)) {
 			lang = "es";
 		}
-		
+		thisClass.lang = lang;
 		$.ajax({url:'localization/messages_' + lang + '.json'}).complete(function(data) {
 			thisClass.msg = JSON.parse(data.responseText);
 			if (onSuccess) onSuccess();
 		});
 	},
+                
+        getLang:function(){
+            this.lang = navigator.language.toLowerCase();
+            return this.lang;
+        },
+
+        add:function(key,value){
+            this.msg[key] = value;
+        },
 
 	translate:function(key) {
 		if (this.msg[key]) return this.msg[key];
@@ -36,7 +46,7 @@ site.MessageBox = Class.create({
 	},
 
 	showFrame:function(src,params) {
-		if (!params) params = {}
+		if (!params) params = {};
 		if (!params.width) params.width = "80%";
 		if (!params.height) params.height = "80%";
 		if (!params.className) params.className = this.frameClassName;
@@ -49,7 +59,7 @@ site.MessageBox = Class.create({
 	},
 	
 	showMessage:function(message,params) {
-		if (!params) params = {}
+		if (!params) params = {};
 		if (!params.width) width = "60%";
 		if (!params.height) height = "40%";
 		
@@ -70,7 +80,7 @@ site.MessageBox = Class.create({
 	},
 
 	showError:function(message,params) {
-		if (!params) params = {}
+		if (!params) params = {};
 		if (!params.width) params.width = "60%";
 		if (!params.height) params.height = "20%";
 		if (!params.className) params.className = this.errorClassName;
@@ -208,16 +218,20 @@ var UtilityView = Class.create({
 	dashboard:null,
 	
 	itemSizeInc:50,
-	
+	filterValue:null,
+        filterGroup:[],
 	hostFilters:[],
 	mhFilters:[],
 	calFilters:[],
+        caFilters:[],
+        enrichFilters:[],
 	
 	initialize:function(parent,dashboard) {
 		this.itemSizeInc = site.instance.initConfig.zoomIncrement;
 		var thisClass = this;
 		this.parentContainer = parent;
 		this.dashboard = dashboard;
+                dashboard.setUtilityView(this);
 		this.container = base.dom.createElement('div',{className:'utilityView'});
 		this.parentContainer.appendChild(this.container);
 		
@@ -228,8 +242,8 @@ var UtilityView = Class.create({
 		sizeField.appendChild(sizeText);
 		var subBtn = base.dom.createElement('input',{className:'stepper'},{'type':'button','value':'-'});
 		var addBtn = base.dom.createElement('input',{className:'stepper'},{'type':'button','value':'+'});
-		$(subBtn).click(function(event) { thisClass.decItemSize(); })
-		$(addBtn).click(function(event) { thisClass.incItemSize(); })
+		$(subBtn).click(function(event) { thisClass.decItemSize(); });
+		$(addBtn).click(function(event) { thisClass.incItemSize(); });
 		sizeField.appendChild(subBtn);
 		sizeField.appendChild(addBtn);
 		
@@ -237,49 +251,63 @@ var UtilityView = Class.create({
 		
 		this.container.appendChild(this.getCheckBox('showHidden',site.messages.translate('showhidden'),site.instance.config.showHiddenAgents,function(checkbox) {
 			if ($(checkbox).is(':checked')) {
-				thisClass.applyFilters(true);
+				thisClass.applyFilters(true,site.instance.config.showFilteredAgents);
 			}
 			else {
-				thisClass.applyFilters(false);
+				thisClass.applyFilters(false,site.instance.config.showFilteredAgents);
 			}
 		}));
-		
+		this.container.appendChild(this.getCheckBox('showFiltered',site.messages.translate('showfiltered'),site.instance.config.showFilteredAgents,function(checkbox) {
+			if ($(checkbox).is(':checked')) {
+				thisClass.applyFilters(site.instance.config.showHiddenAgents,true);
+			}
+			else {
+				thisClass.applyFilters(site.instance.config.showHiddenAgents,false);
+			}
+		}));
+                
 		this.container.appendChild(this.getCheckBox('hideMessages',site.messages.translate('hideWarningMessages'),site.instance.config.hideWarningMessages,function(checkbox) {
 			if ($(checkbox).is(':checked')) {
 				site.instance.config.hideWarningMessages = true;
-				thisClass.applyFilters(site.instance.config.showHiddenAgents);
+				thisClass.applyFilters(site.instance.config.showHiddenAgents,site.instance.config.showFilteredAgents);
 			}
 			else {
 				site.instance.config.hideWarningMessages = false;
-				thisClass.applyFilters(site.instance.config.showHiddenAgents);
+				thisClass.applyFilters(site.instance.config.showHiddenAgents,site.instance.config.showFilteredAgents);
 			}
 		}));
 		
 		if (!site.instance.config.filters || typeof(site.instance.config.filters)!="object") {
 			site.instance.config = {};
 		}
-		
 		this.container.appendChild(base.dom.createElement('div',{className:'utilityTitleLabel',innerHTML:site.messages.translate('filterby')}));
-		this.container.appendChild(base.dom.createElement('div',{className:'utilityTitleLabel subtitle',innerHTML:site.messages.translate('filterbyhost') + ':'}));
-		this.container.appendChild(this.getFilterField('offline',site.messages.translate('offline'),site.instance.config.filters.host.offline,this.hostFilters));
-		this.container.appendChild(this.getFilterField('online',site.messages.translate('online'),site.instance.config.filters.host.online,this.hostFilters));
-		this.container.appendChild(this.getFilterField('vncerror',site.messages.translate('vncerror'),site.instance.config.filters.host.vncerror,this.hostFilters));
+                this.container.appendChild(this.getFilterGroup('host',site.messages.translate('filterbyhost'),this.filterGroup,true));
+                this.container.appendChild(this.getFilterGroup('mh',site.messages.translate('filterbymh'),this.filterGroup));
+                this.container.appendChild(this.getFilterGroup('cal',site.messages.translate('filterbycal'),this.filterGroup));
+
+                $('#div_host').append(this.getFilterField('offline',site.messages.translate('offline'),site.instance.config.filters.host.offline,this.hostFilters));
+		$('#div_host').append(this.getFilterField('online',site.messages.translate('online'),site.instance.config.filters.host.online,this.hostFilters));
+		$('#div_host').append(this.getFilterField('vncerror',site.messages.translate('vncerror'),site.instance.config.filters.host.vncerror,this.hostFilters));
+                
+                $('#div_mh').append(this.getFilterField('idle',site.messages.translate('idle'),site.instance.config.filters.mh.idle,this.mhFilters));
+		$('#div_mh').append(this.getFilterField('offline',site.messages.translate('offline'),site.instance.config.filters.mh.offline,this.mhFilters));
+		$('#div_mh').append(this.getFilterField('capturing',site.messages.translate('capturing'),site.instance.config.filters.mh.capturing,this.mhFilters));
+		$('#div_mh').append(this.getFilterField('unregistered',site.messages.translate('unregistered'),site.instance.config.filters.mh.unregistered,this.mhFilters));
+		$('#div_mh').append(this.getFilterField('unknown',site.messages.translate('unknown'),site.instance.config.filters.mh.unknown,this.mhFilters));
+                $('#div_mh').hide();
 		
-		this.container.appendChild(base.dom.createElement('div',{className:'utilityTitleLabel subtitle',innerHTML:site.messages.translate('filterbymh') + ':'}));
-		this.container.appendChild(this.getFilterField('idle',site.messages.translate('idle'),site.instance.config.filters.mh.idle,this.mhFilters));
-		this.container.appendChild(this.getFilterField('offline',site.messages.translate('offline'),site.instance.config.filters.mh.offline,this.mhFilters));
-		this.container.appendChild(this.getFilterField('capturing',site.messages.translate('capturing'),site.instance.config.filters.mh.capturing,this.mhFilters));
-		this.container.appendChild(this.getFilterField('unregistered',site.messages.translate('unregistered'),site.instance.config.filters.mh.unregistered,this.mhFilters));
-		this.container.appendChild(this.getFilterField('unknown',site.messages.translate('unknown'),site.instance.config.filters.mh.unknown,this.mhFilters));
-
-		this.container.appendChild(base.dom.createElement('div',{className:'utilityTitleLabel subtitle',innerHTML:site.messages.translate('filterbycal') + ':'}));
-		this.container.appendChild(this.getFilterField('capturing',site.messages.translate('capturing'),site.instance.config.filters.cal.capturing,this.calFilters));
-		this.container.appendChild(this.getFilterField('impending',site.messages.translate('impending'),site.instance.config.filters.cal.impending,this.calFilters));
-		this.container.appendChild(this.getFilterField('today',site.messages.translate('today'),site.instance.config.filters.cal.today,this.calFilters));
-		this.container.appendChild(this.getFilterField('idle',site.messages.translate('tomorroworlater'),site.instance.config.filters.cal.idle,this.calFilters));
-
+		$('#div_cal').append(this.getFilterField('capturing',site.messages.translate('capturing'),site.instance.config.filters.cal.capturing,this.calFilters));
+		$('#div_cal').append(this.getFilterField('impending',site.messages.translate('impending'),site.instance.config.filters.cal.impending,this.calFilters));
+		$('#div_cal').append(this.getFilterField('today',site.messages.translate('today'),site.instance.config.filters.cal.today,this.calFilters));
+		$('#div_cal').append(this.getFilterField('idle',site.messages.translate('tomorroworlater'),site.instance.config.filters.cal.idle,this.calFilters));
+                $('#div_cal').hide();
+		
+//              	this.container.appendChild(base.dom.createElement('div',{className:'utilityTitleLabel subtitle',innerHTML:site.messages.translate('filterbycagroup') + ':'}));
+//                this.container.appendChild(base.dom.createElement('div',{id:"caFilters"}));
+                
 		new base.Timer(function(timer) {
-			thisClass.applyFilters(site.instance.config.showHiddenAgents);
+			thisClass.applyFilters(site.instance.config.showHiddenAgents,site.instance.config.showFilteredAgents);
+                        
 		},500);
 		
 		new base.Timer(function(timer) {
@@ -296,24 +324,100 @@ var UtilityView = Class.create({
 		return $(field).is(':checked');
 	},
 	
-	saveFilters:function(fieldArray,filterObject) {
-		for (var i=0; i<fieldArray.length;++i) {
-			var field = fieldArray[i];
-			filterObject[field.id] = this.getFieldValue(field);
-		}
+	saveFilters:function(fieldArray,filterObject, filter, name) {
+            var group_filter_none = false;
+            var group_filter_all = true;
+            for (var i=0; i<fieldArray.length;++i) {
+                var field = fieldArray[i];
+                if (filter) {
+                    field.checked = filterObject[field.id];
+                            //= this.getFieldValue(field);
+                } else {
+                    filterObject[field.id] = this.getFieldValue(field);
+                } 
+                group_filter_none = group_filter_none || filterObject[field.id];
+                group_filter_all =  group_filter_all &&  filterObject[field.id];
+                
+            }
+            if (!group_filter_none) {
+                $(name).attr('class','utilityCheck3 middle');
+            } else if(group_filter_all) {
+                $(name).attr('class','utilityCheck3 middle all');
+            } else {
+                $(name).attr('class','utilityCheck3 middle some');
+            }
+	},
+	saveCaFilters:function(fieldArray,filterObject, filter) {
+            var group_filter = {};
+
+            for (var i=0; i<fieldArray.length;++i) {
+                var field = fieldArray[i];
+                var id=field.id;
+                var p = /(.*?)_:_(.*?)$/g.exec(id);
+                var pos = p[1].length;
+                var group = id.substr(0,pos);
+                var item = id.substr(pos+3);
+                if (filter){
+                    field.checked = filterObject[group][item];
+                } else {                          
+                    filterObject[group][item] = this.getFieldValue(field);
+                }
+                if (!group_filter.hasOwnProperty(group)){
+                    group_filter[group] = {};
+                    group_filter[group].none  = false;
+                    group_filter[group].all = true;
+                } else {
+                    group_filter[group].none = group_filter[group].none || filterObject[group][item];   
+                    group_filter[group].all = group_filter[group].all && filterObject[group][item];
+                }
+            }
+            for (var i in group_filter) {
+                if (!group_filter[i].none) {
+                    $("#"+i+"_all").attr('class','utilityCheck3 middle'); 
+                } else if(group_filter[i].all) {
+                    $("#"+i+"_all").attr('class','utilityCheck3 middle all'); 
+                } else {
+                    $("#"+i+"_all").attr('class','utilityCheck3 middle some');
+                }
+            }
 	},
 	
-	applyFilters:function(showHidden) {
+	applyFilters:function(showHidden,showFiltered,filterall) {
+                var filter = false;
+                if (filterall && typeof(filterall)=="object") {
+                    var filters;
+                    if (site.instance.config.filters.hasOwnProperty(filterall.filter)){
+                        filters = site.instance.config.filters[filterall.filter];
+                    } else if (site.instance.config.filters.enrich.hasOwnProperty(filterall.filter)){
+                        filters = site.instance.config.filters.enrich[filterall.filter];
+                    }
+                    if (filterall.hasOwnProperty('selected')) {
+                        for (var f in filters){
+                            if (filterall.selected == 'all'){
+                                filters[f] = true;
+                                filter = true;
+                      //          filterall.selected == 'all'
+                            } else {
+                                
+                                filters[f] = false;
+                                filter = true;
+                            }
+                        }
+                    }
+                }
 		// host filters
-		this.saveFilters(this.hostFilters,site.instance.config.filters.host);
+		this.saveFilters(this.hostFilters,site.instance.config.filters.host,filter, '#host_all');
 		
 		// matterhorn filters
-		this.saveFilters(this.mhFilters,site.instance.config.filters.mh);
+		this.saveFilters(this.mhFilters,site.instance.config.filters.mh,filter, '#mh_all');
 
 		// 		
-		this.saveFilters(this.calFilters,site.instance.config.filters.cal);
+		this.saveFilters(this.calFilters,site.instance.config.filters.cal,filterall,'#cal_all');
 
+                this.saveCaFilters(this.enrichFilters,site.instance.config.filters.enrich, filterall);
+                
 		site.instance.config.showHiddenAgents = showHidden;
+		site.instance.config.showFilteredAgents = showFiltered;
 		site.instance.saveConfig();
 		this.dashboard.applyFilters(true);
 	},
@@ -323,7 +427,7 @@ var UtilityView = Class.create({
 		var field = base.dom.createElement('div',{className:'utilityField'});
 		var filterField = base.dom.createElement('input',{className:'utilityCheck',id:id},{'type':'checkbox'});
 		if (defaultValue) {
-			filterField.setAttribute('checked','checked');
+                    filterField.setAttribute('checked','checked');
 		}		
 		field.appendChild(filterField);
 		var label = base.dom.createElement('span',{className:'utilityCheckLabel',innerHTML:label});
@@ -341,10 +445,59 @@ var UtilityView = Class.create({
 			filterField.setAttribute("checked", "checked");
 		}
 		field.appendChild(filterField);
-		var label = base.dom.createElement('span',{className:'utilityCheckLabel',innerHTML:label})
+		var label = base.dom.createElement('span',{className:'utilityCheckLabel',innerHTML:label});
 		field.appendChild(label);
-		$(field).click(function(event) { thisClass.applyFilters(site.instance.config.showHiddenAgents); });
+		$(field).click(function(event) { 
+                    
+                    thisClass.applyFilters(site.instance.config.showHiddenAgents,site.instance.config.showFilteredAgents); 
+                });
 		filterArray.push(filterField);
+		return field;
+	},
+                
+	getFilterGroup:function(fieldId,label,filterArray,selected) {
+		var thisClass = this;
+		var field = base.dom.createElement('div',{className:'utilityField'});
+		var fieldBtn = base.dom.createElement('input',{className:'stepper'},{'type':'button','value':label});
+                
+		var filterCheck = base.dom.createElement('div',{className:'utilityCheck3 middle all',id:fieldId+"_all"},{'selected':'all','filter':fieldId});
+		var filterField = base.dom.createElement('input',{className:'utilityButton',id:fieldId},{'type':'button','value':label});//'type':'checkbox'});
+		field.appendChild(filterCheck);
+                field.appendChild(filterField);
+                
+		var label = base.dom.createElement('div',{className:'utilityCheckLabel',id:"div_"+fieldId},{innerHTML:fieldId});
+		field.appendChild(label);
+                $("#div_"+fieldId).hide();
+		if (selected) { 
+                    $("#div_"+fieldId).show();
+		};
+                
+                $(filterCheck).click(function(event) {
+                    var v = event.target.id;
+                    var val = event.target.attributes.selected.value;
+                    var group = {};
+                    
+                    if (val == 'all'){
+                        event.target.attributes.selected.value = 'none';
+                        event.target.className = 'utilityCheck3 middle';
+                    } else {
+                        event.target.attributes.selected.value = 'all';
+                        event.target.className = 'utilityCheck3 middle all';
+                    } 
+                    group.filter  = event.target.attributes.filter.value;
+                    group.selected = event.target.attributes.selected.value;
+                    thisClass.applyFilters(site.instance.config.showHiddenAgents,site.instance.config.showFilteredAgents, group);
+                });
+                
+		$(filterField).click(function(event) {
+                    for (var i=0; i<filterArray.length;++i) {
+                        var f  = filterArray[i];
+                        $("#div_"+f).hide();
+                    }                  
+                    $("#div_"+event.target.id).show();
+                });
+                 //   thisClass.applyFilters(site.instance.config.showHiddenAgents,site.instance.config.showFilteredAgents); });
+		filterArray.push(fieldId);
 		return field;
 	},
 	
@@ -368,7 +521,29 @@ var UtilityView = Class.create({
 		if (animate) $(this.dashboard.mainContainer).animate({'left':this.width + 'px'},{duration:200});
 		else $(this.dashboard.mainContainer).css({'left':this.width + 'px'});
 	},
-	
+        updateFilters:function(caFilters){
+        	// var caFilters = this.dashboard.getCAFilters();
+                this.caFilters = caFilters;
+                site.instance.config.filters.enrich={};
+                for (var enrichFilter in caFilters){
+                    if (!/^- /.test(enrichFilter)) {
+                        var filter = enrichFilter.replace(/ /g,"_");
+                        site.instance.config.filters.enrich[filter] = {};caFilters[enrichFilter];
+                        var message = site.messages.translate(enrichFilter);
+                        if (site.messages.msg.hasOwnProperty("_" + enrichFilter)){
+                            message = site.messages.translate("_" + enrichFilter);
+                        }
+                        this.container.appendChild(this.getFilterGroup(filter,message,this.filterGroup));
+                        for (var content in caFilters[enrichFilter]){
+                            var contentLabel=content.replace(/ /g,"_");
+                            site.instance.config.filters.enrich[filter][contentLabel] = caFilters[enrichFilter][content];
+                            var contentId = filter+"_:_"+contentLabel;
+                             $('#div_'+filter).append(this.getFilterField(contentId,content,site.instance.config.filters.enrich[filter][contentLabel],this.enrichFilters));
+                        }
+                        $('#div_'+filter).hide();
+                    }
+                }
+        },
 	hide:function(animate) {
 		site.instance.config.showUtils = false;
 		site.instance.saveConfig();
@@ -385,11 +560,13 @@ var MonitorDashboard = Class.create({
 	dashboardContainer:null,
 	agentData:null,
 	agentElem:null,
+        utilityView:null,
 	defaultItemProperties:{w:130,h:130},
 	minSize:100,
 	maxSize:450,
+        caGroups:{},
 
-	initialize:function(parent) {
+	initialize:function(parent,utility) {
 		this.parentContainer = parent;
 		this.mainContainer = base.dom.createElement('div',{className:'dashboardMainContainer'});
 		this.dashboardContainer = base.dom.createElement('div',{className:'dashboardContainer'});
@@ -401,7 +578,11 @@ var MonitorDashboard = Class.create({
 		this.messageContainerLeft = base.dom.createElement('div',{className:'dashboardMessageContainerLeft'});
 		this.mainContainer.appendChild(this.messageContainerLeft);
 	},
-	
+                
+	setUtilityView:function (utilityView){
+            this.utilityView = utilityView;
+        },
+                
 	load:function(url,onSuccess) {
 		var thisClass = this;
 		jQuery.ajax({url:url}).always(function(data) {
@@ -411,6 +592,7 @@ var MonitorDashboard = Class.create({
 			thisClass.agentData = data;
 			thisClass.buildDashboard();
 			thisClass.loadHiddenAgentsFromCookie();
+			thisClass.loadFilteredAgentsFromCookie();
 			thisClass.setItemSize(site.instance.config.agentItemSize);
 			new base.Timer(function(timer) {
 				thisClass.applyFilters();
@@ -418,7 +600,18 @@ var MonitorDashboard = Class.create({
 			},700);
 		});
 	},
-	
+        
+        reload:function(url,onSuccess) {
+		var thisClass = this;
+		jQuery.ajax({url:url}).always(function(data) {
+			if (typeof(data)=="string") {
+				data = JSON.parse(data);
+			}
+			thisClass.agentData = data;
+                        thisClass.reloadDashboard();
+                });
+            },
+ 	
 	parseDateTime:function(dateTime) {
 		var result = {};
 		if (/(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)Z/i.test(dateTime)) {
@@ -446,10 +639,31 @@ var MonitorDashboard = Class.create({
 		this.dashboardContainer.innerHTML = "";
 		var recordingAgents = 0;
 		var lastUpdate = this.getLastUpdate();
+                for (var i in this.agentData.agents){
+                    var agent = this.agentData.agents[i];
+                    if (/^-lang-/i.test(agent.agentname)){
+                        // language agent ... defines language settings
+                        var lang = agent.agentname.replace(/^-lang-/,"");
+                        if (lang == site.messages.lang){
+                            for (var name in agent.enrich) {
+                                var val = agent.enrich[name]; 
+                                var n = name;
+                                if (/^- /.test(name)){
+                                    n = name.replace(/^- /,"");
+                                }
+                                site.messages.add("_"+n,val);
+                            }
+                        }
+                    }
+                }
 		for (var i in this.agentData.agents) {
+                    var agent = this.agentData.agents[i];
+                    if (!/^-lang-/i.test(agent.agentname)) {
 			var agent = this.agentData.agents[i];
 			if (typeof(agent)=="object") {
-				var item = this.createItem(agent);
+				var item = this.createItem(agent, 0);
+                                item.agentStatus.donwCount=0;
+//                                this.donwCount[agent.agentname.replace(".","_")] = 0;
 				if (this.getMHStatus(agent)=='capturing') {
 					++recordingAgents;
 				}
@@ -457,6 +671,7 @@ var MonitorDashboard = Class.create({
 				base.dom.prepareToScaleTexts(item);
 				this.agentElem.push(item);
 			}
+                    }
 		}
 		var message = "";
 		if (recordingAgents==1) {
@@ -468,8 +683,60 @@ var MonitorDashboard = Class.create({
 		message += site.messages.translate('lastUpdate') + ': ' + lastUpdate;
 		this.messageContainerLeft.innerHTML = message;
 		this.setupCapturingAnimation();
+                this.utilityView.updateFilters(this.caGroups);
 	},
 	
+        reloadDashboard:function(){
+                var recordingAgents = 0;
+                var lastUpdate = this.getLastUpdate();
+		for (var i in this.agentData.agents) {
+                    var agent = this.agentData.agents[i];
+                    if (typeof(agent)=="object") {
+                        var item = this.createItem(agent);
+                        var url = agent.agenturl;
+                        var ord=Math.random()*10000000000000000;
+                        var imageUrl = "screenshots/" + agent.image.replace(".jpg","-25.jpg") + "?n=" + ord;
+                                //var imageUrl = url + "/snapshots/gc-snapshot25.jpg?n="+ord; 
+                        var agentId = agent.agentname.replace(".","_");
+
+                        if (this.getMHStatus(agent)=='capturing') {
+                            ++recordingAgents;
+                        }
+                        if (item.agentStatus.hostStatus=='online') {
+                            $("#screen_"+agentId).attr("src", imageUrl);
+                            $("#screen_"+agentId).attr('alt',agent.agentname);
+                            $("#online_status_"+agentId).removeClass('offlineIcon');
+                            $("#online_status_"+agentId).addClass('onlineIcon');
+                        } else if (item.agentStatus.hostStatus=='vncerror') {
+                            $("#screen_"+agentId).attr("src", 'resources/vnc_error_screen.png');
+                            $("#screen_"+agentId).attr('alt','vnc error');
+                            $("#online_status_"+agentId).removeClass('onlineIcon');
+                            $("#online_status_"+agentId).addClass('offlineIcon');
+                        } else {
+                            $("#screen_"+agentId).attr("src", 'resources/offline_agent.png');
+                            $("#screen_"+agentId).attr('alt','offline agent');
+                            $("#online_status_"+agentId).removeClass('onlineIcon');
+                            $("#online_status_"+agentId).addClass('offlineIcon');
+                        }
+                        var statusMessage = this.getStatusMessage(item.agentStatus);
+                        var downCount = this.getDownCount(agentId);
+                        $("#statusText_"+agentId).attr('class','dashboardItem statusText ' + statusMessage.className);
+                        $("#statusText_"+agentId).text(statusMessage.message);// + " " + downCount);
+//                        $("#statusText_"+agentId).innerHTML = statusMessage.message;
+       
+                     }
+                }
+                var message = "";
+                if (recordingAgents==1) {
+			message = recordingAgents + " " + site.messages.translate('agentRecording') + '<br/>';
+		}
+		else if (recordingAgents>1) {
+			message = recordingAgents + " " + site.messages.translate('agentsRecording') + '<br/>';
+		}
+		message += site.messages.translate('lastUpdate') + ': ' + lastUpdate;
+		this.messageContainerLeft.innerHTML = message;
+        },
+        
 	loadHiddenAgentsFromCookie:function() {
 		if (!site.instance.config.hiddenAgents || typeof(site.instance.config.hiddenAgents)!="object") {
 			site.instance.config.hiddenAgents = {};
@@ -488,17 +755,41 @@ var MonitorDashboard = Class.create({
 			}	
 		}
 	},
+	loadFilteredAgentsFromCookie:function() {
+		if (!site.instance.config.filteredAgents || typeof(site.instance.config.filteredAgents)!="object") {
+			site.instance.config.filteredAgents = {};
+		}
+		for (var i=0; i<this.agentElem.length;++i) {
+			var agent = this.agentElem[i];
+			configAgentFiltered = site.instance.config.filteredAgents[agent.agentData.agentname];
+			var button = $(agent).find('.dashboardItem.hideButton')[0];
+			if (configAgentHidden) {
+				button.className = "dashboardItem hideButton hide";
+				agent.isAgentFiltered = true;
+			}
+			else {
+				button.className = "dashboardItem hideButton show";
+				agent.isAgentFiltered = false;
+			}	
+		}
+	},
 	
 	// online, offline, vncerror
 	getHostStatus:function(agentData) {
 		var status = 'offline';
 		if (/true/i.test(agentData.online)) {
-			status = 'vncerror';
+			status = 'online';
+		//		status = 'vncerror';
 		}
-		if (/true/i.test(agentData.VNC)) {
+                var downCount = this.getDownCount(agentData.agentname.replace(".","_"));
+                if (downCount < 100) {
+			status = 'online';
+		//		status = 'vncerror';
+		}
+	/*	if (/true/i.test(agentData.VNC)) {
 			status = 'online';
 		}
-		return status;
+	*/	return status;
 	},
 
 	// idle, offline, capturing, unregistered, unknown
@@ -509,13 +800,39 @@ var MonitorDashboard = Class.create({
 		}
 		return status;
 	},
-
-	getRecordingStatus:function(startDate,endDate) {
+                
+        initDownCount:function(agentId){
+            site.instance.config.downAgents[agentId]=0;
+        },
+                
+        incrementDownCount:function(agentId){
+            if (!site.instance.config.downAgents || typeof(site.instance.config.downAgents)!="object") {
+                    site.instance.config.downAgents = {};
+            };
+            if (!site.instance.config.downAgents[agentId]){
+                site.instance.config.downAgents[agentId] = 0;
+            };
+            
+            site.instance.config.downAgents[agentId]++;
+        },
+                
+        getDownCount:function(agentId){
+             if (!site.instance.config.downAgents || typeof(site.instance.config.downAgents)!="object") {
+                    site.instance.config.downAgents = {};
+            };
+            if (!site.instance.config.downAgents[agentId]){
+                site.instance.config.downAgents[agentId] = 0;
+            };
+            return site.instance.config.downAgents[agentId];
+        },  
+                
+        getRecordingStatus:function(startDate,endDate) {
 		var today = new Date();
-		var diff = (today - startDate) / 1000;
-		diff = diff / 60;
-		var endDiff = (today - endDate) / 1000;
-		endDiff = endDiff / 60;
+		var dsec = (today - startDate) / 1000;
+		
+                var diff = dsec / 60;
+		var endDsec = (today - endDate) / 1000;
+		var endDiff = endDsec / 60;
 		var status = 'idle';
 		
 		if (today.getDate()==startDate.getDate() && today.getMonth()==startDate.getMonth() && today.getFullYear()==startDate.getFullYear()) {
@@ -530,7 +847,13 @@ var MonitorDashboard = Class.create({
 		if (diff>0 && endDiff<0) {
 			status = 'capturing';
 		}
-		if (endDiff>0) {
+                if (dsec>-15 && dsec <15) {
+                    status = 'startCapturing';
+                }
+                if (endDsec>-15 && endDsec <15) {
+                    status = 'endCapturing';
+                }
+                if (endDsec>15) {
 			status = 'idle';
 		}
 		return status;
@@ -600,100 +923,141 @@ var MonitorDashboard = Class.create({
 		}
 	},
 	
-	getStatusMessage:function(agentStatus) {
+	getStatusMessage:function(agentStatus, update ) {
+    
 		var host = agentStatus.hostStatus;
 		var mh = agentStatus.mhStatus;
 		var cal = agentStatus.calendarStatus;
-		
-		var calRec = (cal=='capturing' || cal=='impending' || cal=='today');
+                var agentId = agentStatus.agentId;
+                
+		var calRec = (cal=='startCapturing' || cal=='capturing' || cal=='endCapturing' || cal=='impending' || cal=='today' || cal=='idle');
 		var hostDown = (host=='offline');
 		var mhRecording = (mh=='capturing');
 		var mhDown = (mh!='idle' && mh!='capturing');
-
+                var statusMessage = {};
+                
 		var message = '';
 		var className = '';	// ok, warning, error
 
+                if (update==""){
+                    update = false;
+                }
 		if (calRec) {
 			if (hostDown) {
 				message = 'offline';
 				className = 'error';
 			}
 			else if (mhDown) {
-				message = 'mh error';
+				message = 'Matterhorn error';
 				className = 'error';
 			}
 			else if (!mhRecording && cal=='capturing') {
-				message = 'rec error';
+				message = 'recording error';
 				className = 'error';
 			}
 			else if (mhRecording && cal=='capturing') {
 				message = 'capturing';
-				className = 'ok';
+				className = 'recording';
 			}
+			else if (cal=='startCapturing') {
+				message = 'start capturing';
+				className = 'recording';
+			}
+			else if (cal=='endCapturing') {
+  				message = 'end capturing';
+				className = 'recording';
+                        }
 			else if (cal=='impending') {
 				message = 'impending';
-				className = 'ok';
+				className = 'recording';
 			}
 			else if (cal=='today') {
-				message = 'rec today';
-				className = 'ok';
+				message = 'recording today';
+                                className = 'ok';
 			}
-			else {
+			else if (cal=='idle'){
+                        	message = '';
+                                className = '';
+                        }
+                        else {
 				message = 'unknown';
 				className = 'error';
 			}
 		}
 		else if (mhDown) {
-			message = 'mh error';
+			message = 'Matterhorn error';
 			className = 'warning';
 		}
 		else if (hostDown) {
+                        this.incrementDownCount(agentId);
 			message = 'offline';
 			className = 'warning';
 		}
 		else if (!mhDown && !hostDown) {
 			message = '';
-			className = 'ok'
+			className = 'ok';
 		}
-
-		if (message!='' && className!='') {
-			return base.dom.createElement('div',{className:'dashboardItem statusText ' + className,innerHTML:site.messages.translate(message)});
+                if (className == 'error') {
+                    this.incrementDownCount(agentId);
+                } else if (className != 'warning') {
+                    this.initDownCount(agentId);
+                }
+                    
+                statusMessage.message = site.messages.translate(message);
+                statusMessage.className = className;
+                return statusMessage;
+        /*        if (update){
+                    $("#statusText_"+agentId).attr('class','dashboardItem statusText ' + className);
+                    var msg = site.messages.translate(message);
+                    $("#statusText_"+agentId).attr('innerHTML',site.messages.translate(message));
+                    return base.dom.createElement('div',{className:'dashboardItem statusText ' + className,id:'statusText_'+agentId,innerHTML:site.messages.translate(message)});
+               }
+                else {
+                    var msg = site.messages.translate(message);
+                    return base.dom.createElement('div',{className:'dashboardItem statusText ' + className,id:'statusText_'+agentId,innerHTML:site.messages.translate(message)});
 		}
-		return null;
+		return null;*/
 	},
-
+        getCAFilters:function(){
+            return this.caGroups;
+        },
+                
 	createItem:function(agentData) {
 		var item = base.dom.createElement('div',{className:'dashboardItemContainer',id:agentData.agentname});
 		var url = agentData.agenturl;
 		if (!(/http:\/\/(.+)/.test(url))) {
 			url = "http://" + url;
 		}
-		var imageUrl = site.instance.initConfig.thumbsDir + '/' + agentData.thumb;
+		var ord=Math.random()*10000000000000000;
+		var imageUrl = "screenshots/" + agentData.image.replace(".jpg","-25.jpg") + "?n=" + ord;
+		//var imageUrl = url + "/snapshots/gc-snapshot25.jpg?n="+ord;
 		item.agentData = agentData;
-		item.agentStatus = {};
-		item.agentStatus.hostStatus = this.getHostStatus(agentData);
-		item.agentStatus.mhStatus = this.getMHStatus(agentData);
+                var agentId = agentData.agentname.replace(".","_");
+                item.agentStatus = {};
+                item.agentStatus.hostStatus = this.getHostStatus(agentData);
+               // item.agentStatus.downCount = this.getDownCount(agentId);
+                item.agentStatus.mhStatus = this.getMHStatus(agentData);
 		item.agentStatus.calendarStatus = this.getCalendarStatus(agentData);
-		if (item.agentStatus.hostStatus=='online') {
-			item.appendChild(base.dom.createElement('img',{className:'dashboardItem image'},{'src':imageUrl,'alt':agentData.agentname}));
+                item.agentStatus.agentId = agentId;
+
+                if (item.agentStatus.hostStatus=='online') {
+			item.appendChild(base.dom.createElement('img',{className:'dashboardItem image'},{'src':imageUrl,'alt':agentData.agentname,'id':"screen_"+agentId}));
 			item.appendChild(base.dom.createElement('img',{className:'dashboardItem screenGlass'},{'src':'resources/monitor_glass.png','alt':'screen glass'}));
-			item.appendChild(base.dom.createElement('div',{className:'dashboardItem onlineIcon'}));
+			item.appendChild(base.dom.createElement('div',{className:'dashboardItem onlineIcon'},{'id':"online_status_"+agentId}));
 		}
 		else if (item.agentStatus.hostStatus=='vncerror') {
-			item.appendChild(base.dom.createElement('img',{className:'dashboardItem offlineImage'},{'src':'resources/vnc_error_screen.png','alt':'vnc error'}));
+			item.appendChild(base.dom.createElement('img',{className:'dashboardItem offlineImage'},{'src':'resources/vnc_error_screen.png','alt':'vnc error','id':"screen_"+agentId}));
 			item.appendChild(base.dom.createElement('img',{className:'dashboardItem screenGlass'},{'src':'resources/monitor_glass.png','alt':'screen glass'}));
-			item.appendChild(base.dom.createElement('div',{className:'dashboardItem offlineIcon'}));
+			item.appendChild(base.dom.createElement('div',{className:'dashboardItem offlineIcon'},{'id':"online_status_"+agentId}));
 		}
 		else {
-			item.appendChild(base.dom.createElement('img',{className:'dashboardItem offlineImage'},{'src':'resources/offline_agent.png','alt':'offline agent'}));
+			item.appendChild(base.dom.createElement('img',{className:'dashboardItem offlineImage'},{'src':'resources/offline_agent.png','alt':'offline agent','id':"screen_"+agentId}));
 			item.appendChild(base.dom.createElement('img',{className:'dashboardItem screenGlass'},{'src':'resources/monitor_glass.png','alt':'screen glass'}));
-			item.appendChild(base.dom.createElement('div',{className:'dashboardItem offlineIcon'}));
+			item.appendChild(base.dom.createElement('div',{className:'dashboardItem offlineIcon'},{'id':"online_status_"+agentId}));
 		}
 		
 		var statusMessage = this.getStatusMessage(item.agentStatus);
-		if (statusMessage) {
-			item.appendChild(statusMessage);
-		}
+                item.appendChild(base.dom.createElement('div',{className:'dashboardItem statusText ' + statusMessage.className,id:'statusText_'+agentId,innerHTML:statusMessage.message}));
 
 		var iconStatus = 'unreachable';
 		if (item.agentStatus.hostStatus=='vncerror') {
@@ -707,14 +1071,30 @@ var MonitorDashboard = Class.create({
 			iconStatus = 'capturing';
 		}
 
-		item.appendChild(base.dom.createElement('div',{className:'dashboardItem statusIcon ' + iconStatus}));
-		item.appendChild(base.dom.createElement('div',{className:'dashboardItem info name',innerHTML:agentData.agentname}));
-		if (agentData.enrich) {
+	//	item.appendChild(base.dom.createElement('div',{className:'dashboardItem statusIcon ' + iconStatus}));
+		var agentname = agentData.agentname;
+                if (agentData.enrich.hasOwnProperty('name')) {
+                    agentname = agentData.enrich.name; 
+//                    infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('name') + '</span>: ' + agentname}));
+                } else if (agentData.enrich.hasOwnProperty('- name')) {
+                    agentname = agentData.enrich['- name'];
+                }
+                
+                for (var name in agentData.enrich) {
+                    if (!this.caGroups.hasOwnProperty(name)){
+                        this.caGroups[name] = {};
+                    }
+                    var s = this.caGroups[name];
+                    s[agentData.enrich[name]] = true;
+                };
+
+                item.appendChild(base.dom.createElement('div',{className:'dashboardItem info name',innerHTML:agentname}));
+/*		if (agentData.enrich) {
 			item.appendChild(base.dom.createElement('div',{className:'dashboardItem info campus',innerHTML:agentData.enrich.campus}));
 			item.appendChild(base.dom.createElement('div',{className:'dashboardItem info building',innerHTML:agentData.enrich.building}));
 			item.appendChild(base.dom.createElement('div',{className:'dashboardItem info center',innerHTML:agentData.enrich.center}));
 			item.appendChild(base.dom.createElement('div',{className:'dashboardItem info classroom',innerHTML:agentData.enrich.classroom}));
-		}		
+		}	*/	
 		var infoButton = base.dom.createElement('div',{className:'dashboardItem infoButton',innerHTML:'i'});
 		item.appendChild(infoButton);
 		var thisClass = this;
@@ -760,32 +1140,70 @@ var MonitorDashboard = Class.create({
 		agentElem.isAgentHidden = false;
 		this.applyFilters(true);
 	},
-	
+
+        reloadInfoItem:function(agentData){
+ 		var hostStatus = this.getHostStatus(agentData);
+		var ord=Math.random()*10000000000000000;
+		var imageUrl = "screenshots/" + agentData.image.replace(".jpg","-50.jpg") + "?n=" + ord;
+		//var imageUrl = url + "/snapshots/gc-snapshot25.jpg?n="+ord;
+                var agentId = agentData.agentname.replace(".","_");
+                if (hostStatus=='online') {
+                    $("#infoscreen_"+agentId).attr("src", imageUrl);
+                    $("#infoscreen_"+agentId).attr('alt',agentData.agentname);
+                } else if (hostStatus=='vncerror') {
+                    $("#infoscreen_"+agentId).attr("src", 'resources/vnc_error_screen.png');
+                    $("#infoscreen_"+agentId).attr('alt','vnc error');
+                } else {
+                    $("#infoscreen_"+agentId).attr("src", 'resources/offline_agent.png');
+                    $("#infoscreen_"+agentId).attr('alt','offline agent');
+                }
+        },
+
 	createInfoItem:function(agentData) {
-		var item = base.dom.createElement('div',{className:'dashboardDetailContainer',id:agentData.agentname});
+		var thisClass = this;
+                var item = base.dom.createElement('div',{className:'dashboardDetailContainer',id:agentData.agentname});
 		var url = agentData.agenturl;
 		if (!(/http:\/\/(.+)/.test(url))) {
 			url = "http://" + url;
 		}
-		var imageUrl = site.instance.initConfig.thumbsDir + '/' + agentData.image;
+		var imageUrl = "screenshots/" + agentData.image.replace(".jpg","-50.jpg"); //+ "?n=" + ord;
+                
+                var reloadTime = 1000;
+		var reloadInfoTimer = new base.Timer(function(timer) {
+			thisClass.reloadInfoItem(agentData,function() {});
+		},reloadTime);
+                reloadInfoTimer.repeat = true;
+                
+                var agentId = agentData.agentname.replace(".","_");
+               
 		var hostStatus = this.getHostStatus(agentData);
 		if (hostStatus=='online') {
-			item.appendChild(base.dom.createElement('img',{className:'dashboardDetail image'},{'src':imageUrl,'alt':agentData.agentname}));
+			item.appendChild(base.dom.createElement('img',{className:'dashboardDetail image'},{'src':imageUrl,'alt':agentData.agentname,'id':'infoscreen_'+agentId}));
 		}
 		else if (hostStatus=='vncerror') {
-			item.appendChild(base.dom.createElement('img',{className:'dashboardDetail offlineImage'},{'src':'resources/vnc_error_screen.png','alt':'vnc error'}));
+			item.appendChild(base.dom.createElement('img',{className:'dashboardDetail offlineImage'},{'src':'resources/vnc_error_screen.png','alt':'vnc error','id':'infoscreen_'+agentId}));
 		}
 		else {
-			item.appendChild(base.dom.createElement('img',{className:'dashboardDetail offlineImage'},{'src':'resources/offline_agent.png','alt':'offline agent'}));
+			item.appendChild(base.dom.createElement('img',{className:'dashboardDetail offlineImage'},{'src':'resources/offline_agent.png','alt':'offline agent','id':'infoscreen_'+agentId}));
 		}
 		var infoContainer = base.dom.createElement('div',{className:'dashboardDetailInfoContainer'});
-		infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('name') + '</span>:' + agentData.agentname}));
-		infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('address') + '</span>:' + agentData.agenturl}));
+                var agentname = agentData.agentname;
+                if (agentData.enrich.hasOwnProperty('name')) {
+                    agentname = agentData.enrich.name; 
+                    infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('name') + '</span>: ' + agentname}));
+                } 
+                infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('id') + '</span>: ' + agentData.agentname}));
+                // infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('name') + '</span>: ' + agentname}));
+		infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info name',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('address') + '</span>: ' + agentData.agenturl}));
 		if (agentData.enrich) {
-			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info campus',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('campus') + '</span>:' + agentData.enrich.campus}));
-			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info building',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('building') + '</span>:' + agentData.enrich.building}));
-			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info center',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('center') + '</span>:' + agentData.enrich.center}));
-			infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info classroom',innerHTML:'<span class="dashboardDetail info label">' + site.messages.translate('classroom') + '</span>:' + agentData.enrich.classroom}));	
+                        for (var name in agentData.enrich) {
+                            var n = name.replace(/^- /,"");;
+                                var message = site.messages.translate(n)
+                                if (site.messages.msg.hasOwnProperty("_" + n)){
+                                    message = site.messages.translate("_" + n);
+                                }
+                                infoContainer.appendChild(base.dom.createElement('div',{className:'dashboardDetail info',innerHTML:'<span class="dashboardDetail info label">' + message + '</span>: ' + agentData.enrich[name]}));
+                        }
 			
 			hostStatus = this.getHostStatus(agentData);
 			mhStatus = this.getMHStatus(agentData);
@@ -812,6 +1230,7 @@ var MonitorDashboard = Class.create({
 	applyFilters:function(animate) {
 		var filters = site.instance.config.filters;
 		var hiddenItems = 0;
+		var filteredItems = 0;
 		var showAll = false;
 		if (filters==undefined || typeof(filters)!="object") {
 			filters = {
@@ -836,6 +1255,7 @@ var MonitorDashboard = Class.create({
 			};
 		}
 		var showHidden = site.instance.config.showHiddenAgents;
+                var showFiltered = site.instance.config.showFilteredAgents;
 
 		for (var i=0;i<this.agentElem.length;++i) {
 			var agent = this.agentElem[i];
@@ -844,33 +1264,57 @@ var MonitorDashboard = Class.create({
 				var mhStatus = agent.agentStatus.mhStatus;
 				var calStatus = agent.agentStatus.calendarStatus;
 				var visible = false;
-				if (filters.host[hostStatus] && filters.mh[mhStatus] && filters.cal[calStatus] && !agent.isAgentHidden) {
-					visible = true;
+                                var filtered = true;
+                                var enrich = agent.agentData.enrich;
+                                var filterEnrich = true;
+                                
+                                if (!agent.isAgentHidden){
+                                    visible = true;
+                                }
+
+                                for (var g in enrich){
+                                    if (!/^- /.test(g)) {
+                                        var group = g.replace(/ /g,"_");
+                                        var item = enrich[g].replace(/ /g,"_");
+                                        if (!filters.enrich[group][item]){
+                                            filterEnrich = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+				if (filters.host[hostStatus] && filters.mh[mhStatus] && filters.cal[calStatus] && filterEnrich) {
+                                    filtered = false;
 				}
 
-				if (visible) {
+				if (visible && !filtered) {
 					this.showAgent(agent,animate);
-				}
-				else if (!visible && showHidden) {
-					this.showAgent(agent,animate,0.5);
-				}
-				else {
+				} else  if ((!visible && showHidden) || (filtered && showFiltered)) {
+                                        this.showAgent(agent,animate,0.5);
+				} else if (!visible) {
 					this.hideAgent(agent,animate);
 					++hiddenItems;
+				} else if (filtered) {
+					this.filterAgent(agent,animate);
+					++filteredItems;
 				}
 			}
 		}
-		
+		var message = "";
 		if (hiddenItems==1) {
-			this.messageContainer.innerHTML = site.messages.translate('thereAre') + ' ' + hiddenItems + ' ' + site.messages.translate('hiddenItem');
-			$(this.messageContainer).show();
-		}
-		else if (hiddenItems>1) {
-			this.messageContainer.innerHTML = site.messages.translate('thereAre') + ' ' + hiddenItems + ' ' + site.messages.translate('hiddenItems');
-			$(this.messageContainer).show();
-		}
-		else {
-			this.messageContainer.innerHTML = "";
+                        message = site.messages.translate('thereIs') + ' ' + hiddenItems + ' ' + site.messages.translate('hiddenItem') + '<br\>';
+		} else if (hiddenItems > 1) {
+			message =  site.messages.translate('thereAre') + ' ' + hiddenItems + ' ' + site.messages.translate('hiddenItems') + '<br\>';
+                }
+                if (filteredItems == 1 ) {
+                        message += site.messages.translate('thereIs') + ' ' + filteredItems + ' ' + site.messages.translate('filteredItem');
+		} else if (filteredItems > 1) {
+			message +=  site.messages.translate('thereAre') + ' ' + filteredItems + ' ' + site.messages.translate('filteredItems');
+                }
+                this.messageContainer.innerHTML = message;
+                if (message !="") {
+                        $(this.messageContainer).show();
+                } else {
 			$(this.messageContainer).hide();
 		}
 		
@@ -893,7 +1337,20 @@ var MonitorDashboard = Class.create({
 		}
 		site.instance.saveConfig();
 	},
-
+	filterAgent:function(agentElem,animate) {
+		if (animate) {
+			$(agentElem).animate({opacity:0},{complete:function() {
+				$(this).hide();
+			}});
+		}
+		else {
+			$(agentElem).hide();
+		}
+		if (!site.instance.config.filteredAgents || typeof(site.instance.config.filteredAgents)!="object") {
+			site.instance.config.filteredAgents = {};
+		}
+		site.instance.saveConfig();
+	},
 	showAgent:function(agentElem,animate,showOpacity) {
 		if (showOpacity===undefined) showOpacity = 1;
 		if (animate) {
@@ -910,6 +1367,9 @@ var MonitorDashboard = Class.create({
 		if (!site.instance.config.hiddenAgents || typeof(site.instance.config.hiddenAgents)!="object") {
 			site.instance.config.hiddenAgents = {};
 		}
+		if (!site.instance.config.filteredAgents || typeof(site.instance.config.filteredAgents)!="object") {
+			site.instance.config.filteredAgents = {};
+		}                
 		site.instance.saveConfig();
 	},
 	
@@ -923,9 +1383,9 @@ var MonitorDashboard = Class.create({
 		site.instance.config.agentItemSize = width;
 		var height = width;
 		var style = {
-						"width":width + "px",
-						"height":height + "px"
-					};
+                        "width":width + "px",
+                        "height":height + "px"
+                };
 		if (duration===undefined) duration = 500;
 		for (var i=0;i<this.agentElem.length;++i) {
 			var agent = this.agentElem[i];
@@ -954,13 +1414,13 @@ var AgentMonitor = Class.create({
 	reloadTimer:null,
 	reloadAllTimer:null,
 	initConfig:{
-		reloadMinutes:5,
-		reloadAllMinutes:60,
-		agentDataUrl:'agents.json',
-		imagesDir:'screenshots',
-		thumbsDir:'screenshots',
-		zoomIncrement:50,
-		recordingAlertTresshold:120
+            reloadMinutes:20,
+            reloadAllMinutes:60,
+            agentDataUrl:'agents.json',
+            imagesDir:'screenshots',
+            thumbsDir:'screenshots',
+            zoomIncrement:50,
+            recordingAlertTresshold:120
 	},
 
 	initialize:function(container,initConfig) {
@@ -988,17 +1448,18 @@ var AgentMonitor = Class.create({
 			timer.repeat = true;
 			thisClass.saveConfig();
 		},10000);
-		var reloadTime = this.initConfig.reloadMinutes * 60 * 1000;
+                
+		var reloadTime = this.initConfig.reloadMinutes * 1000;
 		this.reloadTimer = new base.Timer(function(timer) {
-			thisClass.dashboard.load(thisClass.initConfig.agentDataUrl,function() {});
+			thisClass.dashboard.reload(thisClass.initConfig.agentDataUrl,function() {});
 		},reloadTime);
 		this.reloadTimer.repeat = true;
-		if (this.initConfig.reloadAllMinutes>0) {
-			var reloadAllTime = this.initConfig.reloadAllMinutes * 60 * 1000;
+	/*	if (this.initConfig.reloadAllMinutes>0) {
+			var reloadAllTime = this.initConfig.reloadAllMinutes  * 1000;
 			this.reloadAllTimer = new base.Timer(function(timer) {
 				window.location = window.location;
 			},reloadAllTime);
-		}		
+		}	*/	
 	},
 	
 	saveConfig:function() {
@@ -1011,7 +1472,10 @@ var AgentMonitor = Class.create({
 			hideWarningMessages:false,
 			agentItemSize:300,
 			hiddenAgents:{},
+			filteredAgents:{},
+                        downAgents:{},
 			showHiddenAgents:false,
+			showFilteredAgents:false,
 			filters: {
 				host:{
 					offline:true,
@@ -1032,7 +1496,7 @@ var AgentMonitor = Class.create({
 					idle:true
 				}
 			}
-		}
+		};
 	},
 
 	loadConfig:function() {
@@ -1065,12 +1529,12 @@ var AgentMonitor = Class.create({
 		$(showButton).click(function(event) {
 			if (this.className==showUtilsButtonClass + " collapsed") {
 				this.className = showUtilsButtonClass + " expanded";
-				this.innerHTML = '<'
+				this.innerHTML = '<';
 				thisClass.utils.show(true);
 			}
 			else if (this.className==showUtilsButtonClass + " expanded") {
 				this.className = showUtilsButtonClass + " collapsed";
-				this.innerHTML = '>'
+				this.innerHTML = '>';
 				thisClass.utils.hide(true);
 			}
 		});

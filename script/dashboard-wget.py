@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os,sys, glob
+import os,sys, glob, csv
 import datetime
 import subprocess
 import ConfigParser
@@ -67,7 +67,6 @@ class MatterhornClient:
 
 
 
-
 def md5_for_file(filename):
 	try:
 		md5 = hashlib.md5()
@@ -85,24 +84,24 @@ def write_file(filename, str):
 	fout.close()
 
 def isComputerOnline(ip):
-	response = subprocess.call("ping -c 1 -w 1 " + ip , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	response = 1;
+	if (ip != None):
+		print "checking ip:" + ip
+		response = subprocess.call("ping -c 1 -w 1 " + ip , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	return (response == 0)
 
 def generateAgentScreenShoot(ip, passwdFile, snapshotFolder, agentSection):
 	outimg = snapshotFolder + agentSection + ".jpg"
-	outthumb = snapshotFolder + agentSection + "-thumb.jpg"
 	outthumb50 = snapshotFolder + agentSection + "-50.jpg"
 	outthumb25 = snapshotFolder + agentSection + "-25.jpg"
 	outthumb10 = snapshotFolder + agentSection + "-10.jpg"
 	
-	vnc_cmd = "timeout 10 vncsnapshot -passwd " + passwdFile + " " + ip + " " + outimg
+	vnc_cmd = "wget " + ip + "/snapshots/gc-snapshot-full.jpg -O" + outimg
 	vncErr = subprocess.call(vnc_cmd , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	if (vncErr == 0):
-		subprocess.call("convert " + outimg + " -resize 500 " + outthumb, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		subprocess.Popen(["convert", outimg, "-resize", "50%", outthumb50], env={"PATH": "/usr/bin"}) #, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		subprocess.Popen(["convert", outimg, "-border", "35x45", "-resize", "25%", outthumb25], env={"PATH": "/usr/bin"}) #, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.Popen(["convert", outimg, "-border", "35x45", "-resize","25%", outthumb25], env={"PATH": "/usr/bin"}) #, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		subprocess.Popen(["convert", outimg, "-resize", "10%", outthumb10], env={"PATH": "/usr/bin"}) #, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	
 	return (vncErr == 0)
 
 def getMatterHornInfo(MHAgentsInfo, agentName):
@@ -171,7 +170,6 @@ def generateAgentJSON(config, MHAgentsInfo, MHCalendarInfo, agentSection):
 			agent_url = MHinfo["url"]
 		except:
 			pass
-		
 	snapshotFolder = getConfigOption(config, "dashboard-config", "snapShotFolder")
 	agent_vncpasswdFile = getConfigOption(config, agentSection, "vncpasswdFile")
 	if (agent_vncpasswdFile == None):
@@ -196,6 +194,8 @@ def generateAgentJSON(config, MHAgentsInfo, MHCalendarInfo, agentSection):
 	if MHCalendarInfo.has_key(agentSection):
 		calendar = MHCalendarInfo[agentSection]
 	
+	if (agent_url == None):
+		agent_url="";	
 	
 	line_str = "{ "
 	line_str += "\"agentname\": \"" + agentSection +"\",\t"
@@ -230,6 +230,7 @@ def getAgentsNames(config, MHAgentsInfo):
 		pass
 	ret.sort()		
 	return ret
+
 
 
 def generateAllAgentsJSON(config, datetime_str):
@@ -290,6 +291,7 @@ def process(conf_file):
 	config.read(conf_file)
 	snapshotFolder = getConfigOption(config, "dashboard-config", "snapShotFolder")	
 	outputJSONFile = getConfigOption(config, "dashboard-config", "outputJSONFile")
+	outputLangFile = getConfigOption(config, "dashboard-config", "outputJSONLangFile")
 	configAgentsFolder = getConfigOption(config, "dashboard-config", "configAgentsFolder")
 	
 	if (snapshotFolder == None):
@@ -305,7 +307,7 @@ def process(conf_file):
 	datetime_str = "%04d-%02d-%02dT%02d:%02d:%02dZ" % (utcnow.year, utcnow.month, utcnow.day, utcnow.hour, utcnow.minute, utcnow.second)
 	sys.stdout.write("Writting JSON file (" + datetime_str + ")... ")
 	sys.stdout.flush()
-	json = generateAllAgentsJSON(config, datetime_str)		
+	json = generateAllAgentsJSON(config, datetime_str)	
 	write_file(outputJSONFile, json)
 	print "Done."
 	

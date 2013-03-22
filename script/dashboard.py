@@ -91,11 +91,17 @@ def isComputerOnline(ip):
 def generateAgentScreenShoot(ip, passwdFile, snapshotFolder, agentSection):
 	outimg = snapshotFolder + agentSection + ".jpg"
 	outthumb = snapshotFolder + agentSection + "-thumb.jpg"
+	outthumb50 = snapshotFolder + agentSection + "-50.jpg"
+	outthumb25 = snapshotFolder + agentSection + "-25.jpg"
+	outthumb10 = snapshotFolder + agentSection + "-10.jpg"
 	
 	vnc_cmd = "timeout 10 vncsnapshot -passwd " + passwdFile + " " + ip + " " + outimg
 	vncErr = subprocess.call(vnc_cmd , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	if (vncErr == 0):
 		subprocess.call("convert " + outimg + " -resize 500 " + outthumb, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.Popen(["convert", outimg, "-resize", "50%", outthumb50], env={"PATH": "/usr/bin"}) #, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.Popen(["convert", outimg, "-border", "35x45", "-resize", "25%", outthumb25], env={"PATH": "/usr/bin"}) #, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		subprocess.Popen(["convert", outimg, "-resize", "10%", outthumb10], env={"PATH": "/usr/bin"}) #, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	
 	return (vncErr == 0)
 
@@ -253,6 +259,20 @@ def readAgentsConfig(config, configAgentsFolder):
 			if files.endswith(".conf"):
 				fileconf = os.path.join(r,files)				
 				config.read(fileconf)
+			if files.endswith(".csv"):
+				filecsv  = os.path.join(r, files)
+				csvfile = open(filecsv, "rb")
+				dialect = csv.Sniffer().sniff(csvfile.read(1024))
+				csvfile.seek(0)
+				csvreader = csv.DictReader(csvfile)
+				for row in csvreader :
+					try:
+						config.add_section(row['id'])
+					except ConfigParser.DuplicateSectionError :
+						print section + "already there"
+					for item in row :
+						if item != 'id' :
+							config.set(row['id'],item, row[item])
 
 def getConfigOption(config, section,option):
 	try:
